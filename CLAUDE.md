@@ -56,6 +56,7 @@ ddogctl investigate {latency, errors, throughput, compare}
 - `ddogctl/utils/error.py` — `@handle_api_error` decorator with retry logic (exponential backoff on 429/5xx, immediate exit on 401/403).
 - `ddogctl/utils/time.py` — `parse_time_range()` handles relative (1h, 24h, 7d) and ISO datetime formats, returns Unix timestamps.
 - `ddogctl/utils/tags.py` — Tag parsing and display formatting.
+- `ddogctl/utils/spans.py` — `aggregate_spans()` wrapper for spans API aggregation (used by APM analytics and investigate commands).
 
 ## Testing Patterns
 
@@ -75,3 +76,11 @@ Standard test pattern: patch `get_datadog_client` to return `mock_client`, invok
 ## Development Methodology
 
 Strict TDD (RED-GREEN-REFACTOR). Coverage target >90%. Reference implementation: `ddogctl/commands/apm.py`.
+
+## Roadmap
+
+See `docs/plans/2026-02-12-ddogctl-roadmap-design.md` for the approved 4-phase plan:
+- **Phase 1**: API parity with Dogshell (monitor CRUD, dashboards, SLOs, downtimes, tags, service checks)
+- **Phase 2**: CLI UX (profiles, apply/diff, shell completion, watch mode)
+- **Phase 3**: Agentic (structured errors, semantic exit codes, stdin piping)
+- **Phase 4**: Beyond Dogshell (synthetics, incidents, notebooks, users, usage, RUM, CI)
