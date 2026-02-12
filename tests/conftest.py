@@ -35,6 +35,7 @@ def mock_client():
     client.incidents = Mock()
     client.users = Mock()
     client.usage = Mock()
+    client.synthetics = Mock()
     return client
 
 
