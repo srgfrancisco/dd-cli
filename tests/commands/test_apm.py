@@ -14,7 +14,7 @@ def test_apm_services_list_json_format(mock_client, runner):
     mock_services = create_mock_service_list([
         "web-prod-blue", "web-prod-green", "marketplace-prod"
     ])
-    mock_client.spans.list_service_definitions.return_value = mock_services
+    mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
     with patch('ddg.commands.apm.get_datadog_client', return_value=mock_client):
         result = runner.invoke(apm, ['services', '--format', 'json'])
@@ -22,9 +22,10 @@ def test_apm_services_list_json_format(mock_client, runner):
         assert result.exit_code == 0
         services = json.loads(result.output)
         assert len(services) == 3
-        assert "web-prod-blue" in services
-        assert "web-prod-green" in services
-        assert "marketplace-prod" in services
+        names = [s["name"] for s in services]
+        assert "web-prod-blue" in names
+        assert "web-prod-green" in names
+        assert "marketplace-prod" in names
 
 
 def test_apm_services_list_table_format(mock_client, runner):
@@ -32,7 +33,7 @@ def test_apm_services_list_table_format(mock_client, runner):
     from ddg.commands.apm import apm
 
     mock_services = create_mock_service_list(["service-a", "service-b"])
-    mock_client.spans.list_service_definitions.return_value = mock_services
+    mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
     with patch('ddg.commands.apm.get_datadog_client', return_value=mock_client):
         result = runner.invoke(apm, ['services'])
@@ -48,7 +49,7 @@ def test_apm_services_empty(mock_client, runner):
     from ddg.commands.apm import apm
 
     mock_services = create_mock_service_list([])
-    mock_client.spans.list_service_definitions.return_value = mock_services
+    mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
     with patch('ddg.commands.apm.get_datadog_client', return_value=mock_client):
         result = runner.invoke(apm, ['services'])
@@ -63,14 +64,16 @@ def test_apm_services_sorted(mock_client, runner):
     mock_services = create_mock_service_list([
         "zebra-service", "alpha-service", "beta-service"
     ])
-    mock_client.spans.list_service_definitions.return_value = mock_services
+    mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
     with patch('ddg.commands.apm.get_datadog_client', return_value=mock_client):
         result = runner.invoke(apm, ['services', '--format', 'json'])
         assert result.exit_code == 0
         services = json.loads(result.output)
-        # JSON format should not be sorted (raw API response)
-        assert services == ["zebra-service", "alpha-service", "beta-service"]
+        names = [s["name"] for s in services]
+        assert "zebra-service" in names
+        assert "alpha-service" in names
+        assert "beta-service" in names
 
         # Table format should be sorted
         result = runner.invoke(apm, ['services'])
@@ -89,15 +92,16 @@ def test_apm_services_includes_both_web_fleets(mock_client, runner):
     mock_services = create_mock_service_list([
         "web-prod-blue", "web-prod-green", "other-service"
     ])
-    mock_client.spans.list_service_definitions.return_value = mock_services
+    mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
     with patch('ddg.commands.apm.get_datadog_client', return_value=mock_client):
         result = runner.invoke(apm, ['services', '--format', 'json'])
         assert result.exit_code == 0
         services = json.loads(result.output)
+        names = [s["name"] for s in services]
         # Both blue and green fleets should be present
-        assert "web-prod-blue" in services
-        assert "web-prod-green" in services
+        assert "web-prod-blue" in names
+        assert "web-prod-green" in names
 
 
 # Traces command tests

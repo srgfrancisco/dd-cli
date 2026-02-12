@@ -27,8 +27,12 @@ def list_hosts(filter, limit, format):
     """List hosts."""
     client = get_datadog_client()
 
+    kwargs = {"count": limit}
+    if filter:
+        kwargs["filter"] = filter
+
     with console.status("[cyan]Fetching hosts...[/cyan]"):
-        result = client.hosts.list_hosts(filter=filter, count=limit)
+        result = client.hosts.list_hosts(**kwargs)
 
     if not result.host_list:
         console.print("[yellow]No hosts found[/yellow]")

@@ -27,6 +27,7 @@ def mock_client():
     client.spans = Mock()
     client.logs = Mock()
     client.dbm = Mock()
+    client.service_definitions = Mock()
     return client
 
 
@@ -204,22 +205,26 @@ def get_monitor_states():
 # APM factory functions
 
 def create_mock_service_list(services):
-    """Factory function to create mock ServiceList response for APM.
+    """Factory function to create mock ServiceDefinition list response.
 
     Args:
         services: List of service names (strings)
 
     Returns:
-        Mock ServiceList response object with nested data.attributes.services
+        Mock response matching ServiceDefinitionApi.list_service_definitions()
     """
-    class MockServiceList:
-        def __init__(self, services):
-            self.data = Mock(attributes=Mock(services=services))
+    data = []
+    for name in services:
+        schema = Mock()
+        schema.dd_service = name
+        schema.team = ""
+        schema.type = "custom"
+        schema.languages = []
+        item = Mock()
+        item.attributes = Mock(schema=schema)
+        data.append(item)
 
-        def to_dict(self):
-            return {"data": {"attributes": {"services": self.data.attributes.services}}}
-
-    return MockServiceList(services)
+    return Mock(data=data)
 
 
 def create_mock_span(span_id, service, resource_name, trace_id, start_ts, end_ts):

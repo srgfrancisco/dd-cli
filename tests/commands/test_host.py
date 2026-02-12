@@ -148,7 +148,7 @@ def test_host_list_limit_parameter(mock_client, runner):
         assert result.exit_code == 0
 
         # Verify API was called with correct limit
-        mock_client.hosts.list_hosts.assert_called_once_with(filter=None, count=25)
+        mock_client.hosts.list_hosts.assert_called_once_with(count=25)
 
 
 def test_host_get_found(mock_client, runner):

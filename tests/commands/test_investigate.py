@@ -164,7 +164,8 @@ def test_investigate_latency_custom_threshold(mock_client, runner):
         calls = mock_client.spans.aggregate_spans.call_args_list
         # First call is p99 query - check filter includes threshold
         first_call_body = calls[0].kwargs['body']
-        assert first_call_body['filter']['query'] == 'service:my-service @duration:>1000000000'
+        filter_dict = first_call_body['data']['attributes']['filter']
+        assert filter_dict['query'] == 'service:my-service @duration:>1000000000'
 
 
 # ============================================================
@@ -293,8 +294,9 @@ def test_investigate_errors_with_time_range(mock_client, runner):
         calls = mock_client.spans.aggregate_spans.call_args_list
         first_call_body = calls[0].kwargs['body']
         # The from/to should be ISO strings derived from 24h ago
-        assert 'from' in first_call_body['filter']
-        assert 'to' in first_call_body['filter']
+        filter_dict = first_call_body['data']['attributes']['filter']
+        assert 'from' in filter_dict
+        assert 'to' in filter_dict
 
 
 # ============================================================
@@ -409,8 +411,9 @@ def test_investigate_throughput_with_time_range(mock_client, runner):
         # Verify time range was passed to API calls
         calls = mock_client.spans.aggregate_spans.call_args_list
         first_call_body = calls[0].kwargs['body']
-        assert 'from' in first_call_body['filter']
-        assert 'to' in first_call_body['filter']
+        filter_dict = first_call_body['data']['attributes']['filter']
+        assert 'from' in filter_dict
+        assert 'to' in filter_dict
 
 
 # ============================================================

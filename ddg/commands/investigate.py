@@ -8,6 +8,7 @@ from rich.table import Table
 from ddg.client import get_datadog_client
 from ddg.utils.error import handle_api_error
 from ddg.utils.time import parse_time_range
+from ddg.utils.spans import aggregate_spans
 
 console = Console()
 
@@ -36,26 +37,19 @@ def investigate_latency(service, from_time, to_time, threshold, fmt):
 
     with console.status(f"[cyan]Investigating latency for {service}...[/cyan]"):
         # Step 1: Get p99 latency for spans above threshold
-        p99_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service} @duration:>{threshold_ns}",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "pc99", "metric": "@duration"}],
-            "group_by": [],
-        })
+        p99_response = aggregate_spans(
+            client,
+            {"query": f"service:{service} @duration:>{threshold_ns}", "from": from_str, "to": to_str},
+            [{"aggregation": "pc99", "metric": "@duration"}],
+        )
 
         # Step 2: Get top slow endpoints
-        endpoints_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "pc99", "metric": "@duration"}],
-            "group_by": [{"facet": "resource_name"}],
-        })
+        endpoints_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": from_str, "to": to_str},
+            [{"aggregation": "pc99", "metric": "@duration"}],
+            [{"facet": "resource_name"}],
+        )
 
         # Step 3: Check error logs
         logs_response = client.logs.list_logs(body={
@@ -130,26 +124,19 @@ def investigate_errors(service, from_time, to_time, fmt):
 
     with console.status(f"[cyan]Investigating errors for {service}...[/cyan]"):
         # Step 1: Count error traces
-        error_count_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service} status:error",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [],
-        })
+        error_count_response = aggregate_spans(
+            client,
+            {"query": f"service:{service} status:error", "from": from_str, "to": to_str},
+            [{"aggregation": "count"}],
+        )
 
         # Step 2: Get error traces by endpoint
-        by_endpoint_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service} status:error",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [{"facet": "resource_name"}],
-        })
+        by_endpoint_response = aggregate_spans(
+            client,
+            {"query": f"service:{service} status:error", "from": from_str, "to": to_str},
+            [{"aggregation": "count"}],
+            [{"facet": "resource_name"}],
+        )
 
         # Step 3: Search error logs
         logs_response = client.logs.list_logs(body={
@@ -227,26 +214,19 @@ def investigate_throughput(service, from_time, to_time, fmt):
 
     with console.status(f"[cyan]Investigating throughput for {service}...[/cyan]"):
         # Step 1: Get total request count
-        total_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [],
-        })
+        total_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": from_str, "to": to_str},
+            [{"aggregation": "count"}],
+        )
 
         # Step 2: Get requests by endpoint
-        by_endpoint_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": from_str,
-                "to": to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [{"facet": "resource_name"}],
-        })
+        by_endpoint_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": from_str, "to": to_str},
+            [{"aggregation": "count"}],
+            [{"facet": "resource_name"}],
+        )
 
     # Extract results
     total_buckets = total_response.data.buckets if total_response.data else []
@@ -309,48 +289,32 @@ def investigate_compare(service, from_time, baseline, fmt):
 
     with console.status(f"[cyan]Comparing metrics for {service}...[/cyan]"):
         # Current period: count
-        current_count_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": current_from_str,
-                "to": current_to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [],
-        })
+        current_count_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": current_from_str, "to": current_to_str},
+            [{"aggregation": "count"}],
+        )
 
         # Current period: p99
-        current_p99_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": current_from_str,
-                "to": current_to_str,
-            },
-            "compute": [{"aggregation": "pc99", "metric": "@duration"}],
-            "group_by": [],
-        })
+        current_p99_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": current_from_str, "to": current_to_str},
+            [{"aggregation": "pc99", "metric": "@duration"}],
+        )
 
         # Baseline period: count
-        baseline_count_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": baseline_from_str,
-                "to": baseline_to_str,
-            },
-            "compute": [{"aggregation": "count"}],
-            "group_by": [],
-        })
+        baseline_count_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": baseline_from_str, "to": baseline_to_str},
+            [{"aggregation": "count"}],
+        )
 
         # Baseline period: p99
-        baseline_p99_response = client.spans.aggregate_spans(body={
-            "filter": {
-                "query": f"service:{service}",
-                "from": baseline_from_str,
-                "to": baseline_to_str,
-            },
-            "compute": [{"aggregation": "pc99", "metric": "@duration"}],
-            "group_by": [],
-        })
+        baseline_p99_response = aggregate_spans(
+            client,
+            {"query": f"service:{service}", "from": baseline_from_str, "to": baseline_to_str},
+            [{"aggregation": "pc99", "metric": "@duration"}],
+        )
 
     # Extract current metrics
     current_count_buckets = current_count_response.data.buckets if current_count_response.data else []

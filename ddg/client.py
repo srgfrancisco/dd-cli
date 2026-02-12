@@ -1,5 +1,6 @@
 """Unified Datadog API client wrapper."""
 
+import os
 from datadog_api_client import ApiClient, Configuration
 from datadog_api_client.v1.api import (
     monitors_api,
@@ -8,7 +9,7 @@ from datadog_api_client.v1.api import (
     hosts_api,
     tags_api,
 )
-from datadog_api_client.v2.api import logs_api, spans_api
+from datadog_api_client.v2.api import logs_api, spans_api, service_definition_api
 from ddg.config import DatadogConfig
 
 
@@ -20,6 +21,10 @@ class DatadogClient:
         configuration.api_key["apiKeyAuth"] = config.api_key
         configuration.api_key["appKeyAuth"] = config.app_key
         configuration.server_variables["site"] = config.site
+
+        proxy = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+        if proxy:
+            configuration.proxy = proxy
 
         self.api_client = ApiClient(configuration)
 
@@ -33,6 +38,7 @@ class DatadogClient:
         # V2 APIs
         self.logs = logs_api.LogsApi(self.api_client)
         self.spans = spans_api.SpansApi(self.api_client)
+        self.service_definitions = service_definition_api.ServiceDefinitionApi(self.api_client)
 
     def __enter__(self):
         return self

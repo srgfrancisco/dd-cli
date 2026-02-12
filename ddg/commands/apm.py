@@ -8,6 +8,7 @@ from rich.table import Table
 from ddg.client import get_datadog_client
 from ddg.utils.error import handle_api_error
 from ddg.utils.time import parse_time_range
+from ddg.utils.spans import aggregate_spans
 
 console = Console()
 
@@ -26,17 +27,33 @@ def list_services(format):
     client = get_datadog_client()
 
     with console.status("[cyan]Fetching APM services...[/cyan]"):
-        response = client.spans.list_service_definitions()
+        response = client.service_definitions.list_service_definitions(page_size=100)
 
-    services = response.data.attributes.services if response.data else []
+    services = []
+    for item in (response.data or []):
+        schema = item.attributes.schema
+        services.append({
+            "name": schema.dd_service,
+            "team": getattr(schema, "team", ""),
+            "type": getattr(schema, "type", ""),
+            "languages": getattr(schema, "languages", []),
+        })
 
     if format == "json":
         print(json.dumps(services, indent=2))
     else:
         table = Table(title="APM Services")
         table.add_column("Service", style="cyan")
-        for service in sorted(services):
-            table.add_row(service)
+        table.add_column("Team", style="white")
+        table.add_column("Type", style="dim")
+        table.add_column("Languages", style="yellow")
+        for svc in sorted(services, key=lambda s: s["name"]):
+            table.add_row(
+                svc["name"],
+                svc["team"],
+                svc["type"],
+                ", ".join(svc["languages"]) if svc["languages"] else "",
+            )
         console.print(table)
         console.print(f"\n[dim]Total services: {len(services)}[/dim]")
 
@@ -156,15 +173,8 @@ def analytics(service, from_time, to_time, metric, group_by, format):
     # Configure group-by (as list of dicts)
     group_by_list = [{"facet": group_by}] if group_by else []
 
-    # Build request (as dict)
-    request_dict = {
-        "filter": filter_dict,
-        "compute": [compute_dict],
-        "group_by": group_by_list
-    }
-
     with console.status(f"[cyan]Computing analytics for {service}...[/cyan]"):
-        response = client.spans.aggregate_spans(body=request_dict)
+        response = aggregate_spans(client, filter_dict, [compute_dict], group_by_list)
 
     buckets = response.data.buckets if response.data else []
 
