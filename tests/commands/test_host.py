@@ -9,7 +9,15 @@ from ddg.commands.host import host
 class MockHost:
     """Mock Datadog host object."""
 
-    def __init__(self, name, is_up=True, apps=None, last_reported_time=None, host_name=None, tags_by_source=None):
+    def __init__(
+        self,
+        name,
+        is_up=True,
+        apps=None,
+        last_reported_time=None,
+        host_name=None,
+        tags_by_source=None,
+    ):
         self.name = name
         self.is_up = is_up
         self.apps = apps or []
@@ -74,21 +82,22 @@ def test_host_list_with_filter(mock_client, runner):
     mock_response = MockHostListResponse(mock_hosts, total_matching=2)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['list', '--filter', 'service:web', '--format', 'json'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["list", "--filter", "service:web", "--format", "json"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
 
         # Verify API was called with filter
-        mock_client.hosts.list_hosts.assert_called_once_with(filter='service:web', count=100)
+        mock_client.hosts.list_hosts.assert_called_once_with(filter="service:web", count=100)
 
         # Parse JSON output
         import json
+
         output = json.loads(result.output)
 
-        assert output['total_matching'] == 2
-        assert len(output['host_list']) == 2
-        assert output['host_list'][0]['name'] == 'web-prod-01'
+        assert output["total_matching"] == 2
+        assert len(output["host_list"]) == 2
+        assert output["host_list"][0]["name"] == "web-prod-01"
 
 
 def test_host_list_no_hosts_found(mock_client, runner):
@@ -96,8 +105,8 @@ def test_host_list_no_hosts_found(mock_client, runner):
     mock_response = MockHostListResponse([], total_matching=0)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['list', '--filter', 'service:nonexistent'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["list", "--filter", "service:nonexistent"])
 
         assert result.exit_code == 0
         assert "No hosts found" in result.output
@@ -110,20 +119,15 @@ def test_host_list_table_format(mock_client, runner):
             "web-prod-01",
             is_up=True,
             apps=["nginx", "app", "monitoring", "extra"],
-            last_reported_time=1644000000
+            last_reported_time=1644000000,
         ),
-        MockHost(
-            "web-prod-02",
-            is_up=False,
-            apps=["nginx"],
-            last_reported_time=1644001000
-        ),
+        MockHost("web-prod-02", is_up=False, apps=["nginx"], last_reported_time=1644001000),
     ]
     mock_response = MockHostListResponse(mock_hosts, total_matching=2)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['list'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["list"])
 
         assert result.exit_code == 0
         assert "Datadog Hosts" in result.output
@@ -142,8 +146,8 @@ def test_host_list_limit_parameter(mock_client, runner):
     mock_response = MockHostListResponse(mock_hosts, total_matching=50)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['list', '--limit', '25', '--format', 'json'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["list", "--limit", "25", "--format", "json"])
 
         assert result.exit_code == 0
 
@@ -162,26 +166,27 @@ def test_host_get_found(mock_client, runner):
         tags_by_source={
             "Datadog": ["env:prod", "service:web", "region:us-west-2"],
             "AWS": ["instance-id:i-1234567890"],
-        }
+        },
     )
     mock_response = MockHostListResponse([mock_host], total_matching=1)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['get', 'web-prod-01', '--format', 'json'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["get", "web-prod-01", "--format", "json"])
 
         assert result.exit_code == 0
 
         # Verify API was called with host filter
-        mock_client.hosts.list_hosts.assert_called_once_with(filter='host:web-prod-01')
+        mock_client.hosts.list_hosts.assert_called_once_with(filter="host:web-prod-01")
 
         # Parse JSON output
         import json
+
         output = json.loads(result.output)
 
-        assert output['name'] == 'web-prod-01'
-        assert output['is_up'] is True
-        assert 'nginx' in output['apps']
+        assert output["name"] == "web-prod-01"
+        assert output["is_up"] is True
+        assert "nginx" in output["apps"]
 
 
 def test_host_get_not_found(mock_client, runner):
@@ -189,8 +194,8 @@ def test_host_get_not_found(mock_client, runner):
     mock_response = MockHostListResponse([], total_matching=0)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['get', 'nonexistent-host'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["get", "nonexistent-host"])
 
         assert result.exit_code == 0
         assert "Host not found: nonexistent-host" in result.output
@@ -205,15 +210,22 @@ def test_host_get_table_format(mock_client, runner):
         last_reported_time=1644000000,
         host_name="ip-10-0-1-100.ec2.internal",
         tags_by_source={
-            "Datadog": ["env:prod", "service:web", "region:us-west-2", "extra1", "extra2", "extra3"],
+            "Datadog": [
+                "env:prod",
+                "service:web",
+                "region:us-west-2",
+                "extra1",
+                "extra2",
+                "extra3",
+            ],
             "AWS": ["instance-id:i-1234567890"],
-        }
+        },
     )
     mock_response = MockHostListResponse([mock_host], total_matching=1)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['get', 'web-prod-01'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["get", "web-prod-01"])
 
         assert result.exit_code == 0
         assert "Host: web-prod-01" in result.output
@@ -235,8 +247,8 @@ def test_host_totals(mock_client, runner):
     mock_totals = MockHostTotals(total_active=150, total_up=145, total_down=5)
     mock_client.hosts.get_host_totals.return_value = mock_totals
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['totals'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["totals"])
 
         assert result.exit_code == 0
         assert "Host Totals" in result.output
@@ -252,8 +264,8 @@ def test_host_totals_without_down_attribute(mock_client, runner):
     del mock_totals.total_down
     mock_client.hosts.get_host_totals.return_value = mock_totals
 
-    with patch('ddg.commands.host.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(host, ['totals'])
+    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(host, ["totals"])
 
         assert result.exit_code == 0
         assert "Total Active: 100" in result.output

@@ -30,14 +30,16 @@ def list_services(format):
         response = client.service_definitions.list_service_definitions(page_size=100)
 
     services = []
-    for item in (response.data or []):
+    for item in response.data or []:
         schema = item.attributes.schema
-        services.append({
-            "name": schema.dd_service,
-            "team": getattr(schema, "team", ""),
-            "type": getattr(schema, "type", ""),
-            "languages": getattr(schema, "languages", []),
-        })
+        services.append(
+            {
+                "name": schema.dd_service,
+                "team": getattr(schema, "team", ""),
+                "type": getattr(schema, "type", ""),
+                "languages": getattr(schema, "languages", []),
+            }
+        )
 
     if format == "json":
         print(json.dumps(services, indent=2))
@@ -85,10 +87,7 @@ def search_traces(service, from_time, to_time, limit, extra_filter, format):
 
     with console.status(f"[cyan]Searching traces for {service}...[/cyan]"):
         response = client.spans.list_spans_get(
-            filter_query=query,
-            filter_from=from_str,
-            filter_to=to_str,
-            page_limit=limit
+            filter_query=query, filter_from=from_str, filter_to=to_str, page_limit=limit
         )
 
     spans = response.data if response.data else []
@@ -97,16 +96,20 @@ def search_traces(service, from_time, to_time, limit, extra_filter, format):
         output = []
         for span in spans:
             attrs = span.attributes
-            duration_ms = (attrs.duration / 1_000_000) if hasattr(attrs, 'duration') else 0
+            duration_ms = (attrs.duration / 1_000_000) if hasattr(attrs, "duration") else 0
 
-            output.append({
-                "trace_id": attrs.trace_id,
-                "span_id": attrs.span_id,
-                "service": attrs.service,
-                "resource": attrs.resource_name,
-                "duration_ms": round(duration_ms, 2),
-                "timestamp": attrs.start_timestamp.isoformat() if attrs.start_timestamp else None
-            })
+            output.append(
+                {
+                    "trace_id": attrs.trace_id,
+                    "span_id": attrs.span_id,
+                    "service": attrs.service,
+                    "resource": attrs.resource_name,
+                    "duration_ms": round(duration_ms, 2),
+                    "timestamp": (
+                        attrs.start_timestamp.isoformat() if attrs.start_timestamp else None
+                    ),
+                }
+            )
         print(json.dumps(output, indent=2))
     else:
         table = Table(title=f"Traces for {service}")
@@ -117,14 +120,13 @@ def search_traces(service, from_time, to_time, limit, extra_filter, format):
 
         for span in spans:
             attrs = span.attributes
-            duration_ms = (attrs.duration / 1_000_000) if hasattr(attrs, 'duration') else 0
-            time_str = attrs.start_timestamp.strftime("%H:%M:%S") if attrs.start_timestamp else "N/A"
+            duration_ms = (attrs.duration / 1_000_000) if hasattr(attrs, "duration") else 0
+            time_str = (
+                attrs.start_timestamp.strftime("%H:%M:%S") if attrs.start_timestamp else "N/A"
+            )
 
             table.add_row(
-                attrs.trace_id[:16] + "..",
-                attrs.resource_name[:45],
-                f"{duration_ms:.2f}",
-                time_str
+                attrs.trace_id[:16] + "..", attrs.resource_name[:45], f"{duration_ms:.2f}", time_str
             )
 
         console.print(table)
@@ -152,11 +154,7 @@ def analytics(service, from_time, to_time, metric, group_by, format):
     to_str = datetime.fromtimestamp(to_ts).isoformat() + "Z"
 
     # Build filter (as dict)
-    filter_dict = {
-        "query": f"service:{service}",
-        "from": from_str,
-        "to": to_str
-    }
+    filter_dict = {"query": f"service:{service}", "from": from_str, "to": to_str}
 
     # Configure compute (as dict)
     if metric == "count":

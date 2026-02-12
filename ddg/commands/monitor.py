@@ -27,7 +27,10 @@ def monitor():
     help="Filter by state",
 )
 @click.option(
-    "--format", type=click.Choice(["json", "table", "markdown"]), default="table", help="Output format"
+    "--format",
+    type=click.Choice(["json", "table", "markdown"]),
+    default="table",
+    help="Output format",
 )
 @handle_api_error
 def list_monitors(tags, state, format):
@@ -90,7 +93,9 @@ def list_monitors(tags, state, format):
 
 @monitor.command(name="get")
 @click.argument("monitor_id", type=int)
-@click.option("--format", type=click.Choice(["json", "table"]), default="table", help="Output format")
+@click.option(
+    "--format", type=click.Choice(["json", "table"]), default="table", help="Output format"
+)
 @handle_api_error
 def get_monitor(monitor_id, format):
     """Get monitor details (equivalent to dogshell's show)."""

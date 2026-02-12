@@ -63,30 +63,33 @@ def test_monitor_list_state_filter(mock_client, runner):
     mock_client.monitors.list_monitors.return_value = mock_monitors
 
     # Patch get_datadog_client to return our mock
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
         # Test filtering by Alert state only
-        result = runner.invoke(monitor, ['list', '--state', 'Alert', '--format', 'json'])
+        result = runner.invoke(monitor, ["list", "--state", "Alert", "--format", "json"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
 
         # Parse JSON output
         import json
+
         output = json.loads(result.output)
 
         # Should only return Alert monitors (IDs 1 and 4)
         assert len(output) == 2, f"Expected 2 Alert monitors, got {len(output)}"
-        assert output[0]['id'] == 1
-        assert output[1]['id'] == 4
+        assert output[0]["id"] == 1
+        assert output[1]["id"] == 4
 
         # Test filtering by multiple states (Alert and Warn)
-        result = runner.invoke(monitor, ['list', '--state', 'Alert', '--state', 'Warn', '--format', 'json'])
+        result = runner.invoke(
+            monitor, ["list", "--state", "Alert", "--state", "Warn", "--format", "json"]
+        )
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
         output = json.loads(result.output)
 
         # Should return Alert and Warn monitors (IDs 1, 2, 4)
         assert len(output) == 3, f"Expected 3 Alert/Warn monitors, got {len(output)}"
-        monitor_ids = [m['id'] for m in output]
+        monitor_ids = [m["id"] for m in output]
         assert sorted(monitor_ids) == [1, 2, 4]
 
         # Verify OK monitor (ID 3) was filtered out
@@ -102,12 +105,13 @@ def test_monitor_list_no_state_filter(mock_client, runner):
 
     mock_client.monitors.list_monitors.return_value = mock_monitors
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['list', '--format', 'json'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["list", "--format", "json"])
 
         assert result.exit_code == 0
 
         import json
+
         output = json.loads(result.output)
 
         # Should return all monitors
@@ -122,13 +126,15 @@ def test_monitor_list_no_state_filter(mock_client, runner):
 def test_monitor_list_table_format(mock_client, runner):
     """Test monitor list with table format (default)."""
     mock_monitors = [
-        MockMonitor(1, "Test Monitor", MonitorOverallStates.ALERT, tags=["env:prod", "service:web"]),
+        MockMonitor(
+            1, "Test Monitor", MonitorOverallStates.ALERT, tags=["env:prod", "service:web"]
+        ),
     ]
 
     mock_client.monitors.list_monitors.return_value = mock_monitors
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['list', '--format', 'table'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["list", "--format", "table"])
 
         assert result.exit_code == 0
         assert "Datadog Monitors" in result.output
@@ -145,8 +151,8 @@ def test_monitor_list_markdown_format(mock_client, runner):
 
     mock_client.monitors.list_monitors.return_value = mock_monitors
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['list', '--format', 'markdown'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["list", "--format", "markdown"])
 
         assert result.exit_code == 0
         # Check markdown table structure
@@ -165,18 +171,19 @@ def test_monitor_list_json_format(mock_client, runner):
 
     mock_client.monitors.list_monitors.return_value = mock_monitors
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['list', '--format', 'json'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["list", "--format", "json"])
 
         assert result.exit_code == 0
 
         import json
+
         output = json.loads(result.output)
 
         assert len(output) == 1
-        assert output[0]['id'] == 1
-        assert output[0]['name'] == "Test Monitor"
-        assert output[0]['tags'] == ["env:prod"]
+        assert output[0]["id"] == 1
+        assert output[0]["name"] == "Test Monitor"
+        assert output[0]["tags"] == ["env:prod"]
 
 
 # ============================================================================
@@ -187,18 +194,15 @@ def test_monitor_list_json_format(mock_client, runner):
 def test_monitor_get_table_format(mock_client, runner):
     """Test getting a single monitor with table format."""
     mock_monitor = MockMonitor(
-        123,
-        "CPU Alert Monitor",
-        MonitorOverallStates.ALERT,
-        tags=["env:prod", "service:web"]
+        123, "CPU Alert Monitor", MonitorOverallStates.ALERT, tags=["env:prod", "service:web"]
     )
     mock_monitor.created = "2024-01-01T00:00:00Z"
     mock_monitor.modified = "2024-01-02T00:00:00Z"
 
     mock_client.monitors.get_monitor.return_value = mock_monitor
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['get', '123', '--format', 'table'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["get", "123", "--format", "table"])
 
         assert result.exit_code == 0
         assert "Monitor #123" in result.output
@@ -211,27 +215,23 @@ def test_monitor_get_table_format(mock_client, runner):
 
 def test_monitor_get_json_format(mock_client, runner):
     """Test getting a single monitor with JSON format."""
-    mock_monitor = MockMonitor(
-        456,
-        "Memory Monitor",
-        MonitorOverallStates.OK,
-        tags=["env:staging"]
-    )
+    mock_monitor = MockMonitor(456, "Memory Monitor", MonitorOverallStates.OK, tags=["env:staging"])
 
     mock_client.monitors.get_monitor.return_value = mock_monitor
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['get', '456', '--format', 'json'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["get", "456", "--format", "json"])
 
         assert result.exit_code == 0
 
         import json
+
         output = json.loads(result.output)
 
-        assert output['id'] == 456
-        assert output['name'] == "Memory Monitor"
-        assert output['type'] == "metric alert"
-        assert output['tags'] == ["env:staging"]
+        assert output["id"] == 456
+        assert output["name"] == "Memory Monitor"
+        assert output["type"] == "metric alert"
+        assert output["tags"] == ["env:staging"]
 
 
 def test_monitor_get_without_optional_fields(mock_client, runner):
@@ -240,8 +240,8 @@ def test_monitor_get_without_optional_fields(mock_client, runner):
 
     mock_client.monitors.get_monitor.return_value = mock_monitor
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['get', '789'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["get", "789"])
 
         assert result.exit_code == 0
         assert "Simple Monitor" in result.output
@@ -256,8 +256,8 @@ def test_monitor_mute_basic(mock_client, runner):
     """Test muting a monitor without additional options."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['mute', '123'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["mute", "123"])
 
         assert result.exit_code == 0
         assert "Monitor 123 muted" in result.output
@@ -268,8 +268,8 @@ def test_monitor_mute_with_duration(mock_client, runner):
     """Test muting a monitor with a duration."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['mute', '123', '--duration', '3600'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["mute", "123", "--duration", "3600"])
 
         assert result.exit_code == 0
         assert "Monitor 123 muted" in result.output
@@ -281,8 +281,8 @@ def test_monitor_mute_with_scope(mock_client, runner):
     """Test muting a monitor with a specific scope."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['mute', '456', '--scope', 'host:myhost'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["mute", "456", "--scope", "host:myhost"])
 
         assert result.exit_code == 0
         assert "Monitor 456 muted" in result.output
@@ -293,8 +293,10 @@ def test_monitor_mute_with_duration_and_scope(mock_client, runner):
     """Test muting a monitor with both duration and scope."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['mute', '789', '--duration', '1800', '--scope', 'env:prod'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(
+            monitor, ["mute", "789", "--duration", "1800", "--scope", "env:prod"]
+        )
 
         assert result.exit_code == 0
         assert "Monitor 789 muted" in result.output
@@ -311,8 +313,8 @@ def test_monitor_unmute_basic(mock_client, runner):
     """Test unmuting a monitor without additional options."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['unmute', '123'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["unmute", "123"])
 
         assert result.exit_code == 0
         assert "Monitor 123 unmuted" in result.output
@@ -323,8 +325,8 @@ def test_monitor_unmute_with_scope(mock_client, runner):
     """Test unmuting a monitor with a specific scope."""
     mock_client.monitors.update_monitor.return_value = Mock()
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(monitor, ['unmute', '456', '--scope', 'host:myhost'])
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(monitor, ["unmute", "456", "--scope", "host:myhost"])
 
         assert result.exit_code == 0
         assert "Monitor 456 unmuted" in result.output
@@ -350,10 +352,10 @@ def test_monitor_validate_valid_definition(mock_client, runner):
     """Test validating a valid monitor definition."""
     mock_client.monitors.validate_monitor.return_value = MockValidationResult(has_errors=False)
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             monitor,
-            ['validate', '--type', 'metric alert', '--query', 'avg:system.cpu.user{*} > 80']
+            ["validate", "--type", "metric alert", "--query", "avg:system.cpu.user{*} > 80"],
         )
 
         assert result.exit_code == 0
@@ -365,10 +367,9 @@ def test_monitor_validate_invalid_definition(mock_client, runner):
     """Test validating an invalid monitor definition."""
     mock_client.monitors.validate_monitor.return_value = MockValidationResult(has_errors=True)
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
-            monitor,
-            ['validate', '--type', 'metric alert', '--query', 'invalid query syntax']
+            monitor, ["validate", "--type", "metric alert", "--query", "invalid query syntax"]
         )
 
         assert result.exit_code == 1  # Should exit with error code
@@ -379,13 +380,13 @@ def test_monitor_validate_invalid_definition(mock_client, runner):
 
 def test_monitor_validate_missing_required_args(mock_client, runner):
     """Test validate command without required arguments."""
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
         # Missing --query
-        result = runner.invoke(monitor, ['validate', '--type', 'metric alert'])
+        result = runner.invoke(monitor, ["validate", "--type", "metric alert"])
         assert result.exit_code != 0
 
         # Missing --type
-        result = runner.invoke(monitor, ['validate', '--query', 'avg:system.cpu{*}'])
+        result = runner.invoke(monitor, ["validate", "--query", "avg:system.cpu{*}"])
         assert result.exit_code != 0
 
 
@@ -407,19 +408,20 @@ def test_monitor_workflow_list_get(mock_client, runner):
     mock_single = MockMonitor(1, "Monitor A", MonitorOverallStates.ALERT)
     mock_client.monitors.get_monitor.return_value = mock_single
 
-    with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+    with patch("ddg.commands.monitor.get_datadog_client", return_value=mock_client):
         # First list all monitors
-        result = runner.invoke(monitor, ['list', '--format', 'json'])
+        result = runner.invoke(monitor, ["list", "--format", "json"])
         assert result.exit_code == 0
 
         import json
+
         monitors_list = json.loads(result.output)
         assert len(monitors_list) == 2
 
         # Then get details of the first one
-        result = runner.invoke(monitor, ['get', '1', '--format', 'json'])
+        result = runner.invoke(monitor, ["get", "1", "--format", "json"])
         assert result.exit_code == 0
 
         monitor_details = json.loads(result.output)
-        assert monitor_details['id'] == 1
-        assert monitor_details['name'] == "Monitor A"
+        assert monitor_details["id"] == 1
+        assert monitor_details["name"] == "Monitor A"

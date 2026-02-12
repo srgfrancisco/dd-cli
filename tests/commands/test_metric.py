@@ -98,9 +98,7 @@ def test_metric_query_csv_format(mock_client, runner):
     mock_client.metrics.query_metrics.return_value = mock_response
 
     with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
-        result = runner.invoke(
-            metric, ["query", "avg:database.connections{*}", "--format", "csv"]
-        )
+        result = runner.invoke(metric, ["query", "avg:database.connections{*}", "--format", "csv"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
 
@@ -128,9 +126,7 @@ def test_metric_query_table_format(mock_client, runner):
     mock_client.metrics.query_metrics.return_value = mock_response
 
     with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
-        result = runner.invoke(
-            metric, ["query", "p90:trace.web.request{*}", "--format", "table"]
-        )
+        result = runner.invoke(metric, ["query", "p90:trace.web.request{*}", "--format", "table"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
 
@@ -281,9 +277,7 @@ def test_metric_search_client_side_filtering(mock_client, runner):
 
 def test_metric_search_case_insensitive(mock_client, runner):
     """Test metric search is case-insensitive."""
-    mock_response = MockMetricListResponse(
-        metrics=["system.CPU.user", "system.cpu.system"]
-    )
+    mock_response = MockMetricListResponse(metrics=["system.CPU.user", "system.cpu.system"])
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
     with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
@@ -378,9 +372,7 @@ def test_metric_query_table_format_truncates_points(mock_client, runner):
     mock_client.metrics.query_metrics.return_value = mock_response
 
     with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
-        result = runner.invoke(
-            metric, ["query", "avg:system.load.1{*}", "--format", "table"]
-        )
+        result = runner.invoke(metric, ["query", "avg:system.load.1{*}", "--format", "table"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
 

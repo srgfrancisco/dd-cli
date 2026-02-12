@@ -8,8 +8,8 @@ from click.testing import CliRunner
 from rich.console import Console
 from tests.conftest import create_mock_dbm_host, create_mock_dbm_query, create_mock_dbm_sample
 
-
 # ---- hosts command tests ----
+
 
 def test_dbm_hosts_list_all(mock_client, runner):
     """Test listing all database hosts and verifying count."""
@@ -23,8 +23,8 @@ def test_dbm_hosts_list_all(mock_client, runner):
     mock_response = Mock(data=mock_hosts)
     mock_client.dbm.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['hosts', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["hosts", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 3
@@ -40,8 +40,8 @@ def test_dbm_hosts_filter_by_env(mock_client, runner):
     mock_response = Mock(data=mock_hosts)
     mock_client.dbm.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['hosts', '--env', 'production', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["hosts", "--env", "production", "--format", "json"])
         assert result.exit_code == 0
         mock_client.dbm.list_hosts.assert_called_once_with(env="production")
 
@@ -56,8 +56,8 @@ def test_dbm_hosts_json_format(mock_client, runner):
     mock_response = Mock(data=mock_hosts)
     mock_client.dbm.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['hosts', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["hosts", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
@@ -80,8 +80,8 @@ def test_dbm_hosts_table_format(mock_client, runner):
     mock_response = Mock(data=mock_hosts)
     mock_client.dbm.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['hosts'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["hosts"])
         assert result.exit_code == 0
         assert "Database Hosts" in result.output
         assert "db-prod-01" in result.output
@@ -101,33 +101,38 @@ def test_dbm_hosts_empty(mock_client, runner):
     mock_response = Mock(data=[])
     mock_client.dbm.list_hosts.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['hosts'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["hosts"])
         assert result.exit_code == 0
         assert "Total hosts: 0" in result.output
 
 
 # ---- queries command tests ----
 
+
 def test_dbm_queries_top_by_latency(mock_client, runner):
     """Test queries sorted by average latency (default)."""
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"),
-        create_mock_dbm_query("q2", "SELECT * FROM orders", 30.0, 500, 15000.0, "web-api", "orders_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"
+        ),
+        create_mock_dbm_query(
+            "q2", "SELECT * FROM orders", 30.0, 500, 15000.0, "web-api", "orders_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 2
         # Default sort is avg_latency
         call_kwargs = mock_client.dbm.list_queries.call_args.kwargs
-        assert call_kwargs['sort_by'] == 'avg_latency'
+        assert call_kwargs["sort_by"] == "avg_latency"
 
 
 def test_dbm_queries_top_by_calls(mock_client, runner):
@@ -135,16 +140,18 @@ def test_dbm_queries_top_by_calls(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--sort-by', 'calls', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--sort-by", "calls", "--format", "json"])
         assert result.exit_code == 0
         call_kwargs = mock_client.dbm.list_queries.call_args.kwargs
-        assert call_kwargs['sort_by'] == 'calls'
+        assert call_kwargs["sort_by"] == "calls"
 
 
 def test_dbm_queries_filter_by_service(mock_client, runner):
@@ -152,16 +159,18 @@ def test_dbm_queries_filter_by_service(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--service', 'web-api', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--service", "web-api", "--format", "json"])
         assert result.exit_code == 0
         call_kwargs = mock_client.dbm.list_queries.call_args.kwargs
-        assert call_kwargs['service'] == 'web-api'
+        assert call_kwargs["service"] == "web-api"
 
 
 def test_dbm_queries_filter_by_database(mock_client, runner):
@@ -169,16 +178,18 @@ def test_dbm_queries_filter_by_database(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--database', 'users_db', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--database", "users_db", "--format", "json"])
         assert result.exit_code == 0
         call_kwargs = mock_client.dbm.list_queries.call_args.kwargs
-        assert call_kwargs['database'] == 'users_db'
+        assert call_kwargs["database"] == "users_db"
 
 
 def test_dbm_queries_json_format(mock_client, runner):
@@ -186,13 +197,15 @@ def test_dbm_queries_json_format(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users WHERE id = ?", 25.5, 1200, 30600.0, "web-api", "users_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users WHERE id = ?", 25.5, 1200, 30600.0, "web-api", "users_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
@@ -211,15 +224,19 @@ def test_dbm_queries_table_format(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query("q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"),
-        create_mock_dbm_query("q2", "INSERT INTO orders", 10.0, 200, 2000.0, "web-api", "orders_db"),
+        create_mock_dbm_query(
+            "q1", "SELECT * FROM users", 50.0, 1000, 50000.0, "web-api", "users_db"
+        ),
+        create_mock_dbm_query(
+            "q2", "INSERT INTO orders", 10.0, 200, 2000.0, "web-api", "orders_db"
+        ),
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        with patch('ddg.commands.dbm.console', Console(width=200)):
-            result = runner.invoke(dbm, ['queries'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        with patch("ddg.commands.dbm.console", Console(width=200)):
+            result = runner.invoke(dbm, ["queries"])
             assert result.exit_code == 0
             assert "Database Queries" in result.output
             assert "q1" in result.output
@@ -235,18 +252,20 @@ def test_dbm_queries_with_limit(mock_client, runner):
     from ddg.commands.dbm import dbm
 
     mock_queries = [
-        create_mock_dbm_query(f"q{i}", f"SELECT {i}", float(i), i * 100, float(i * 1000), "svc", "db")
+        create_mock_dbm_query(
+            f"q{i}", f"SELECT {i}", float(i), i * 100, float(i * 1000), "svc", "db"
+        )
         for i in range(5)
     ]
     mock_response = Mock(data=mock_queries)
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries', '--limit', '3'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries", "--limit", "3"])
         assert result.exit_code == 0
         mock_client.dbm.list_queries.assert_called_once()
         call_kwargs = mock_client.dbm.list_queries.call_args.kwargs
-        assert call_kwargs['limit'] == 3
+        assert call_kwargs["limit"] == 3
 
 
 def test_dbm_queries_empty(mock_client, runner):
@@ -256,13 +275,14 @@ def test_dbm_queries_empty(mock_client, runner):
     mock_response = Mock(data=[])
     mock_client.dbm.list_queries.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['queries'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["queries"])
         assert result.exit_code == 0
         assert "Total queries: 0" in result.output
 
 
 # ---- explain command tests ----
+
 
 def test_dbm_explain_query_plan(mock_client, runner):
     """Test explain command displays execution plan text."""
@@ -278,8 +298,8 @@ def test_dbm_explain_query_plan(mock_client, runner):
     mock_response = Mock(data=plan)
     mock_client.dbm.get_query_plan.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['explain', 'q1'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["explain", "q1"])
         assert result.exit_code == 0
         assert "Seq Scan on users" in result.output
 
@@ -298,8 +318,8 @@ def test_dbm_explain_json_format(mock_client, runner):
     mock_response = Mock(data=plan)
     mock_client.dbm.get_query_plan.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['explain', 'q1', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["explain", "q1", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert output["query_id"] == "q1"
@@ -323,8 +343,8 @@ def test_dbm_explain_text_format(mock_client, runner):
     mock_response = Mock(data=plan)
     mock_client.dbm.get_query_plan.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['explain', 'q1', '--format', 'text'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["explain", "q1", "--format", "text"])
         assert result.exit_code == 0
         assert "Query Plan for q1" in result.output
         assert "Seq Scan on users" in result.output
@@ -345,8 +365,8 @@ def test_dbm_explain_with_metadata(mock_client, runner):
     mock_response = Mock(data=plan)
     mock_client.dbm.get_query_plan.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['explain', 'q42'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["explain", "q42"])
         assert result.exit_code == 0
         assert "analytics_db" in result.output
         assert "analytics-api" in result.output
@@ -359,13 +379,14 @@ def test_dbm_explain_not_found(mock_client, runner):
     mock_response = Mock(data=None)
     mock_client.dbm.get_query_plan.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['explain', 'nonexistent-query'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["explain", "nonexistent-query"])
         assert result.exit_code == 0
         assert "not found" in result.output
 
 
 # ---- samples command tests ----
+
 
 def test_dbm_samples_list(mock_client, runner):
     """Test listing sample executions for a query."""
@@ -380,8 +401,8 @@ def test_dbm_samples_list(mock_client, runner):
     mock_response = Mock(data=mock_samples)
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 3
@@ -398,8 +419,8 @@ def test_dbm_samples_json_format(mock_client, runner):
     mock_response = Mock(data=mock_samples)
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1', '--format', 'json'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
@@ -422,8 +443,8 @@ def test_dbm_samples_table_format(mock_client, runner):
     mock_response = Mock(data=mock_samples)
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1"])
         assert result.exit_code == 0
         assert "Query Samples for q1" in result.output
         assert "45.50" in result.output
@@ -437,18 +458,17 @@ def test_dbm_samples_with_limit(mock_client, runner):
 
     now = datetime.now()
     mock_samples = [
-        create_mock_dbm_sample(now - timedelta(minutes=i), 10.0 + i, i, {})
-        for i in range(5)
+        create_mock_dbm_sample(now - timedelta(minutes=i), 10.0 + i, i, {}) for i in range(5)
     ]
     mock_response = Mock(data=mock_samples)
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1', '--limit', '3'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1", "--limit", "3"])
         assert result.exit_code == 0
         mock_client.dbm.list_query_samples.assert_called_once()
         call_kwargs = mock_client.dbm.list_query_samples.call_args.kwargs
-        assert call_kwargs['limit'] == 3
+        assert call_kwargs["limit"] == 3
 
 
 def test_dbm_samples_time_range(mock_client, runner):
@@ -458,15 +478,15 @@ def test_dbm_samples_time_range(mock_client, runner):
     mock_response = Mock(data=[])
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1', '--from', '24h', '--to', 'now'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1", "--from", "24h", "--to", "now"])
         assert result.exit_code == 0
         mock_client.dbm.list_query_samples.assert_called_once()
         call_kwargs = mock_client.dbm.list_query_samples.call_args.kwargs
-        assert 'from_ts' in call_kwargs
-        assert 'to_ts' in call_kwargs
+        assert "from_ts" in call_kwargs
+        assert "to_ts" in call_kwargs
         # from_ts should be roughly 24h ago (less than to_ts)
-        assert call_kwargs['from_ts'] < call_kwargs['to_ts']
+        assert call_kwargs["from_ts"] < call_kwargs["to_ts"]
 
 
 def test_dbm_samples_empty(mock_client, runner):
@@ -476,7 +496,7 @@ def test_dbm_samples_empty(mock_client, runner):
     mock_response = Mock(data=[])
     mock_client.dbm.list_query_samples.return_value = mock_response
 
-    with patch('ddg.commands.dbm.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(dbm, ['samples', 'q1'])
+    with patch("ddg.commands.dbm.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(dbm, ["samples", "q1"])
         assert result.exit_code == 0
         assert "Total samples: 0" in result.output

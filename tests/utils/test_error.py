@@ -14,17 +14,18 @@ class TestHandleApiError:
     @pytest.fixture
     def mock_console(self):
         """Mock rich Console for capturing output."""
-        with patch('ddg.utils.error.console') as mock:
+        with patch("ddg.utils.error.console") as mock:
             yield mock
 
     @pytest.fixture
     def mock_sleep(self):
         """Mock time.sleep to avoid delays in tests."""
-        with patch('ddg.utils.error.time.sleep') as mock:
+        with patch("ddg.utils.error.time.sleep") as mock:
             yield mock
 
     def test_successful_call_no_error(self, mock_console):
         """Test that successful function calls work normally."""
+
         @handle_api_error
         def successful_func():
             return "success"
@@ -36,6 +37,7 @@ class TestHandleApiError:
 
     def test_successful_call_with_args_and_kwargs(self, mock_console):
         """Test that decorator preserves function arguments."""
+
         @handle_api_error
         def func_with_args(a, b, c=None):
             return f"{a}-{b}-{c}"
@@ -46,6 +48,7 @@ class TestHandleApiError:
 
     def test_401_authentication_error(self, mock_console):
         """Test that 401 errors trigger authentication message and exit."""
+
         @handle_api_error
         def auth_error_func():
             raise ApiException(status=401, reason="Unauthorized")
@@ -61,6 +64,7 @@ class TestHandleApiError:
 
     def test_403_permission_error(self, mock_console):
         """Test that 403 errors trigger permission message and exit."""
+
         @handle_api_error
         def permission_error_func():
             raise ApiException(status=403, reason="Forbidden")
@@ -106,6 +110,7 @@ class TestHandleApiError:
 
     def test_429_rate_limit_max_retries_exceeded(self, mock_console, mock_sleep):
         """Test that 429 errors exit after max retries."""
+
         @handle_api_error
         def always_rate_limited():
             raise ApiException(status=429, reason="Rate Limited")
@@ -167,6 +172,7 @@ class TestHandleApiError:
 
     def test_server_error_max_retries_exceeded(self, mock_console, mock_sleep):
         """Test that server errors exit after max retries."""
+
         @handle_api_error
         def always_server_error():
             raise ApiException(status=500, reason="Internal Server Error")
@@ -186,6 +192,7 @@ class TestHandleApiError:
 
     def test_400_client_error_no_retry(self, mock_console, mock_sleep):
         """Test that 4xx errors (except 429) don't retry."""
+
         @handle_api_error
         def bad_request_func():
             raise ApiException(status=400, reason="Bad Request")
@@ -205,6 +212,7 @@ class TestHandleApiError:
 
     def test_404_not_found_no_retry(self, mock_console, mock_sleep):
         """Test that 404 errors don't retry."""
+
         @handle_api_error
         def not_found_func():
             raise ApiException(status=404, reason="Not Found")
@@ -220,6 +228,7 @@ class TestHandleApiError:
 
     def test_generic_exception_handling(self, mock_console):
         """Test that non-ApiException errors are caught and logged."""
+
         @handle_api_error
         def generic_error_func():
             raise RuntimeError("Something went wrong")
@@ -236,6 +245,7 @@ class TestHandleApiError:
 
     def test_preserves_function_metadata(self):
         """Test that decorator preserves function name and docstring."""
+
         @handle_api_error
         def documented_func():
             """This is a test function."""
@@ -246,6 +256,7 @@ class TestHandleApiError:
 
     def test_different_api_exception_messages(self, mock_console):
         """Test that exception messages are included in error output."""
+
         @handle_api_error
         def custom_error_func():
             raise ApiException(
@@ -262,6 +273,7 @@ class TestHandleApiError:
 
     def test_multiple_function_applications(self, mock_console):
         """Test that decorator can be applied to multiple functions."""
+
         @handle_api_error
         def func1():
             return "func1"
@@ -278,9 +290,11 @@ class TestHandleApiError:
 
     def test_nested_decorator_application(self, mock_console):
         """Test behavior when decorator is used with other decorators."""
+
         def other_decorator(func):
             def wrapper(*args, **kwargs):
                 return f"wrapped: {func(*args, **kwargs)}"
+
             return wrapper
 
         @handle_api_error
@@ -321,6 +335,7 @@ class TestHandleApiError:
 
     def test_exception_with_no_status_attribute(self, mock_console):
         """Test handling of exceptions that don't have a status attribute."""
+
         # Create a custom exception without status
         class CustomException(Exception):
             pass

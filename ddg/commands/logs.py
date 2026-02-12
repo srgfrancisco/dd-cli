@@ -43,7 +43,7 @@ def _render_logs_table(logs_data, title="Logs"):
     for log in logs_data:
         attrs = log.attributes
         time_str = str(attrs.timestamp)
-        if hasattr(attrs.timestamp, 'strftime'):
+        if hasattr(attrs.timestamp, "strftime"):
             time_str = attrs.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
         status = attrs.status
