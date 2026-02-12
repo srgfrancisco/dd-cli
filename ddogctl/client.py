@@ -10,6 +10,7 @@ from datadog_api_client.v1.api import (
     tags_api,
     service_checks_api,
     downtimes_api,
+    service_level_objectives_api,
 )
 from datadog_api_client.v2.api import logs_api, spans_api, service_definition_api
 from ddogctl.config import DatadogConfig
@@ -38,6 +39,7 @@ class DatadogClient:
         self.tags = tags_api.TagsApi(self.api_client)
         self.service_checks = service_checks_api.ServiceChecksApi(self.api_client)
         self.downtimes = downtimes_api.DowntimesApi(self.api_client)
+        self.slos = service_level_objectives_api.ServiceLevelObjectivesApi(self.api_client)
 
         # V2 APIs
         self.logs = logs_api.LogsApi(self.api_client)
