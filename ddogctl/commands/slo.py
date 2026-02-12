@@ -9,6 +9,7 @@ from ddogctl.utils.error import handle_api_error
 from ddogctl.utils.file_input import load_json_option
 from ddogctl.utils.confirm import confirm_action
 from ddogctl.utils.export import export_to_json
+from ddogctl.utils.stdin import read_stdin_json, stdin_option
 from ddogctl.utils.time import parse_time_range
 
 console = Console()
@@ -168,6 +169,7 @@ def get_slo(slo_id, fmt):
     default=None,
     help="JSON file with SLO definition",
 )
+@stdin_option
 @click.option(
     "--format",
     "fmt",
@@ -186,9 +188,19 @@ def create_slo(
     tags,
     description,
     file_data,
+    from_stdin,
     fmt,
 ):
-    """Create an SLO from inline flags or a JSON file."""
+    """Create an SLO from inline flags, a JSON file, or stdin.
+
+    Examples:
+        ddogctl slo create --type metric --name "API SLO" --thresholds "30d:99.9" ...
+        ddogctl slo create -f slo.json
+        ddogctl slo export abc123 | ddogctl slo create --from-stdin
+    """
+    if from_stdin:
+        file_data = read_stdin_json()
+
     if file_data:
         body = file_data
     else:

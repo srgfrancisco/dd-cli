@@ -10,6 +10,7 @@ from ddogctl.client import get_datadog_client
 from ddogctl.utils.error import handle_api_error
 from ddogctl.utils.file_input import load_json_option
 from ddogctl.utils.confirm import confirm_action
+from ddogctl.utils.stdin import read_stdin_json, stdin_option
 from ddogctl.utils.watch import watch_loop
 
 console = Console()
@@ -172,15 +173,56 @@ def get_monitor(monitor_id, format):
 
 
 @monitor.command(name="mute")
-@click.argument("monitor_id", type=int)
+@click.argument("monitor_id", type=int, required=False, default=None)
 @click.option("--scope", help="Scope to mute (e.g., host:myhost)")
 @click.option("--duration", type=int, help="Mute duration in seconds")
+@stdin_option
 @handle_api_error
-def mute_monitor(monitor_id, scope, duration):
-    """Mute a monitor."""
+def mute_monitor(monitor_id, scope, duration, from_stdin):
+    """Mute a monitor or multiple monitors from stdin.
+
+    Examples:
+        ddogctl monitor mute 12345
+        ddogctl monitor mute 12345 --duration 3600
+        ddogctl monitor list --state Alert --format json | ddogctl monitor mute --from-stdin
+    """
     import time
 
     client = get_datadog_client()
+
+    if from_stdin:
+        data = read_stdin_json()
+        # Accept a list of objects with 'id' field or a single object
+        if isinstance(data, dict):
+            data = [data]
+
+        if not data:
+            raise click.ClickException("No monitors to mute in stdin input.")
+
+        mute_options = {}
+        if scope:
+            mute_options["scope"] = scope
+        if duration:
+            mute_options["end"] = int(time.time()) + duration
+
+        from datadog_api_client.v1.model.monitor_update_request import MonitorUpdateRequest
+
+        muted_count = 0
+        for item in data:
+            mid = item.get("id") if isinstance(item, dict) else item
+            if mid is None:
+                console.print("[yellow]Skipping item without 'id' field[/yellow]")
+                continue
+            with console.status(f"[cyan]Muting monitor {mid}...[/cyan]"):
+                client.monitors.update_monitor(int(mid), body=MonitorUpdateRequest(**mute_options))
+            console.print(f"[green]Monitor {mid} muted[/green]")
+            muted_count += 1
+
+        console.print(f"\n[bold green]{muted_count} monitor(s) muted[/bold green]")
+        return
+
+    if monitor_id is None:
+        raise click.UsageError("Missing argument 'MONITOR_ID' (required without --from-stdin)")
 
     mute_options = {}
     if scope:
@@ -193,7 +235,7 @@ def mute_monitor(monitor_id, scope, duration):
 
         client.monitors.update_monitor(monitor_id, body=MonitorUpdateRequest(**mute_options))
 
-    console.print(f"[green]✓ Monitor {monitor_id} muted[/green]")
+    console.print(f"[green]Monitor {monitor_id} muted[/green]")
     if duration:
         console.print(f"[dim]Muted for {duration} seconds[/dim]")
 
@@ -257,6 +299,7 @@ def validate_monitor(monitor_type, query):
     default=None,
     help="JSON file with monitor definition",
 )
+@stdin_option
 @click.option(
     "--format",
     "fmt",
@@ -265,9 +308,20 @@ def validate_monitor(monitor_type, query):
     help="Output format",
 )
 @handle_api_error
-def create_monitor_cmd(monitor_type, query, name, message, tags, priority, file_data, fmt):
-    """Create a monitor from inline flags or a JSON file."""
+def create_monitor_cmd(
+    monitor_type, query, name, message, tags, priority, file_data, from_stdin, fmt
+):
+    """Create a monitor from inline flags, a JSON file, or stdin.
+
+    Examples:
+        ddogctl monitor create --type "metric alert" --query "..." --name "CPU Alert"
+        ddogctl monitor create -f monitor.json
+        echo '{"type":"metric alert","query":"...","name":"CPU"}' | ddogctl monitor create --from-stdin
+    """
     from datadog_api_client.v1.model.monitor import Monitor
+
+    if from_stdin:
+        file_data = read_stdin_json()
 
     if file_data:
         # File takes precedence over inline flags
@@ -318,6 +372,7 @@ def create_monitor_cmd(monitor_type, query, name, message, tags, priority, file_
     default=None,
     help="JSON file with monitor update definition",
 )
+@stdin_option
 @click.option(
     "--format",
     "fmt",
@@ -326,9 +381,20 @@ def create_monitor_cmd(monitor_type, query, name, message, tags, priority, file_
     help="Output format",
 )
 @handle_api_error
-def update_monitor_cmd(monitor_id, name, query, message, tags, priority, file_data, fmt):
-    """Update a monitor by ID from inline flags or a JSON file."""
+def update_monitor_cmd(
+    monitor_id, name, query, message, tags, priority, file_data, from_stdin, fmt
+):
+    """Update a monitor by ID from inline flags, a JSON file, or stdin.
+
+    Examples:
+        ddogctl monitor update 12345 --name "New Name"
+        ddogctl monitor update 12345 -f update.json
+        echo '{"name":"New Name"}' | ddogctl monitor update 12345 --from-stdin
+    """
     from datadog_api_client.v1.model.monitor_update_request import MonitorUpdateRequest
+
+    if from_stdin:
+        file_data = read_stdin_json()
 
     if file_data:
         update_body = MonitorUpdateRequest(**file_data)

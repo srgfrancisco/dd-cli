@@ -9,6 +9,7 @@ from ddogctl.utils.error import handle_api_error
 from ddogctl.utils.file_input import load_json_option
 from ddogctl.utils.confirm import confirm_action
 from ddogctl.utils.export import export_to_json
+from ddogctl.utils.stdin import read_stdin_json, stdin_option
 
 console = Console()
 
@@ -124,6 +125,7 @@ def get_dashboard(dashboard_id, format):
     default=None,
     help="JSON file with dashboard definition",
 )
+@stdin_option
 @click.option(
     "--format",
     "fmt",
@@ -132,15 +134,21 @@ def get_dashboard(dashboard_id, format):
     help="Output format",
 )
 @handle_api_error
-def create_dashboard_cmd(title, layout_type, description, file_data, fmt):
-    """Create a dashboard from a JSON file or inline flags.
+def create_dashboard_cmd(title, layout_type, description, file_data, from_stdin, fmt):
+    """Create a dashboard from a JSON file, inline flags, or stdin.
 
     From file (primary workflow):
         ddogctl dashboard create -f dashboard.json
 
+    From stdin (piping):
+        ddogctl dashboard export abc-123 | ddogctl dashboard create --from-stdin --title "Copy"
+
     With inline flags (metadata only, no widgets):
         ddogctl dashboard create --title "My Dashboard" --layout-type ordered
     """
+    if from_stdin:
+        file_data = read_stdin_json()
+
     if file_data:
         body = file_data
     else:
