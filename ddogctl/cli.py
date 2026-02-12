@@ -79,6 +79,7 @@ from ddogctl.commands.tag import tag
 from ddogctl.commands.downtime import downtime
 from ddogctl.commands.slo import slo
 from ddogctl.commands.dashboard import dashboard
+from ddogctl.commands.synthetics import synthetics
 from ddogctl.commands.completion import completion
 from ddogctl.commands.apply import apply_cmd, diff_cmd
 from ddogctl.commands.config import config
@@ -99,6 +100,7 @@ main.add_command(tag)
 main.add_command(downtime)
 main.add_command(slo)
 main.add_command(dashboard)
+main.add_command(synthetics)
 main.add_command(completion)
 main.add_command(apply_cmd)
 main.add_command(diff_cmd)
