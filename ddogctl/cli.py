@@ -41,6 +41,7 @@ from ddogctl.commands.service_check import service_check
 from ddogctl.commands.tag import tag
 from ddogctl.commands.downtime import downtime
 from ddogctl.commands.slo import slo
+from ddogctl.commands.dashboard import dashboard
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -54,6 +55,7 @@ main.add_command(service_check)
 main.add_command(tag)
 main.add_command(downtime)
 main.add_command(slo)
+main.add_command(dashboard)
 
 
 if __name__ == "__main__":
