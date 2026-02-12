@@ -37,6 +37,7 @@ from ddogctl.commands.apm import apm
 from ddogctl.commands.logs import logs
 from ddogctl.commands.dbm import dbm
 from ddogctl.commands.investigate import investigate
+from ddogctl.commands.service_check import service_check
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -46,6 +47,7 @@ main.add_command(apm)
 main.add_command(logs)
 main.add_command(dbm)
 main.add_command(investigate)
+main.add_command(service_check)
 
 
 if __name__ == "__main__":
