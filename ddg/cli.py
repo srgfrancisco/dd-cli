@@ -9,10 +9,10 @@ console = Console()
 @click.group()
 @click.version_option(version="0.1.0")
 def main():
-    """Datadog CLI for Kojo troubleshooting.
+    """A modern CLI for the Datadog API. Like Dogshell, but better.
 
-    A comprehensive CLI tool for querying Datadog APIs across monitors,
-    metrics, events, logs, APM, and database monitoring.
+    Query monitors, metrics, events, hosts, APM traces, logs, and more
+    from your terminal with rich output and smart defaults.
 
     Configuration:
         DD_API_KEY - Datadog API key (required)
@@ -20,9 +20,9 @@ def main():
         DD_SITE - Datadog site (default: datadoghq.com)
 
     Examples:
-        dd monitor list --state Alert
-        dd metric query "avg:system.cpu.user{service:web-prod-blue}" --from 1h
-        dd investigate latency web-prod-blue
+        ddg monitor list --state Alert
+        ddg apm traces my-service --from 1h
+        ddg logs search "status:error" --service my-api
     """
     pass
 
