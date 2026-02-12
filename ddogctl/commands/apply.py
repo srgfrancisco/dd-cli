@@ -12,6 +12,7 @@ from rich.syntax import Syntax
 from ddogctl.client import get_datadog_client
 from ddogctl.utils.error import handle_api_error
 from ddogctl.utils.file_input import load_json_file
+from ddogctl.utils.stdin import read_stdin_json, stdin_option
 
 console = Console()
 
@@ -134,9 +135,11 @@ def _fetch_live_state(data: dict, resource_type: str) -> dict:
     "-f",
     "--file",
     "file_path",
-    required=True,
+    required=False,
+    default=None,
     help="JSON file or directory to apply",
 )
+@stdin_option
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -150,8 +153,8 @@ def _fetch_live_state(data: dict, resource_type: str) -> dict:
     help="Scan directory recursively for JSON files",
 )
 @handle_api_error
-def apply_cmd(file_path, dry_run, recursive):
-    """Apply Datadog resources from JSON files.
+def apply_cmd(file_path, from_stdin, dry_run, recursive):
+    """Apply Datadog resources from JSON files or stdin.
 
     Auto-detects resource type (monitor, dashboard, SLO, downtime) from JSON
     structure. Resources with an 'id' field are updated; without are created.
@@ -160,7 +163,20 @@ def apply_cmd(file_path, dry_run, recursive):
         ddogctl apply -f monitor.json
         ddogctl apply -f dashboards/ --recursive
         ddogctl apply -f slo.json --dry-run
+        echo '{"type":"metric alert","query":"...","name":"CPU"}' | ddogctl apply --from-stdin
     """
+    if from_stdin:
+        data = read_stdin_json()
+        try:
+            _apply_single_resource(data, dry_run=dry_run)
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            sys.exit(1)
+        return
+
+    if not file_path:
+        raise click.UsageError("Either -f/--file or --from-stdin is required.")
+
     path = Path(file_path)
 
     if path.is_dir():
