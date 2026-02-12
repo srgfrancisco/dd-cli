@@ -10,27 +10,26 @@ ddogctl is a modern CLI for the Datadog API. Like Dogshell, but better. Rich ter
 
 ```bash
 # Setup
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync --all-extras
 
 # Run tests
-pytest tests/ -v
-pytest tests/commands/test_apm.py -v          # single module
-pytest tests/commands/test_apm.py::test_name   # single test
-pytest tests/ --cov=ddogctl --cov-report=html  # coverage
+uv run pytest tests/ -v
+uv run pytest tests/commands/test_apm.py -v          # single module
+uv run pytest tests/commands/test_apm.py::test_name   # single test
+uv run pytest tests/ --cov=ddogctl --cov-report=html  # coverage
 
 # Code quality
-black ddogctl/ tests/                          # format (line-length: 100)
-ruff check ddogctl/ tests/                     # lint (line-length: 100)
-mypy ddogctl/                                  # type check
+uv run black ddogctl/ tests/                          # format (line-length: 100)
+uv run ruff check ddogctl/ tests/                     # lint (line-length: 100)
+uv run mypy ddogctl/                                  # type check
 
 # Run CLI
 export DD_API_KEY=... DD_APP_KEY=...
-ddogctl monitor list --state Alert
-ddogctl apm services
-ddogctl logs search "status:error" --service my-api
-ddogctl dbm queries --sort-by avg_latency
-ddogctl investigate latency my-service --threshold 500
+uv run ddogctl monitor list --state Alert
+uv run ddogctl apm services
+uv run ddogctl logs search "status:error" --service my-api
+uv run ddogctl dbm queries --sort-by avg_latency
+uv run ddogctl investigate latency my-service --threshold 500
 ```
 
 ## Architecture
