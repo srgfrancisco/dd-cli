@@ -17,6 +17,7 @@ uv run pytest tests/ -v
 uv run pytest tests/commands/test_apm.py -v          # single module
 uv run pytest tests/commands/test_apm.py::test_name   # single test
 uv run pytest tests/ --cov=ddogctl --cov-report=html  # coverage
+uv run pytest tests/ -m "not integration"             # skip integration tests
 
 # Code quality
 uv run black ddogctl/ tests/                          # format (line-length: 100)
@@ -30,6 +31,7 @@ uv run ddogctl apm services
 uv run ddogctl logs search "status:error" --service my-api
 uv run ddogctl dbm queries --sort-by avg_latency
 uv run ddogctl investigate latency my-service --threshold 500
+uv run ddogctl monitor list --state Alert --watch 10   # refresh every 10s
 ```
 
 ## Architecture
@@ -108,3 +110,11 @@ Strict TDD (RED-GREEN-REFACTOR). Coverage target >90%. Reference implementation:
 - When parallel PRs modify `cli.py`, `client.py`, and `conftest.py` (shared files), merge sequentially and rebase each subsequent PR.
 - `git gtr` may not be available everywhere — falls back to `git worktree` commands.
 - The `claude-review` CI check can take 5-17 minutes. Wait for it before merging.
+- Worktrees: run `uv sync --all-extras` after creation; use `--force` to remove (uv untracked files); use `gh pr merge --squash` without `--delete-branch` if worktree still references branch.
+- `git remote prune origin` cleans stale remote tracking refs after branch deletion.
+
+## Releasing
+
+1. Bump version in `pyproject.toml` and `ddogctl/cli.py` (`@click.version_option`)
+2. PR, merge, then tag: `git tag -a vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`
+3. CI publish job auto-triggers on `refs/tags/v*` via PyPI trusted publishing
