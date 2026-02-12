@@ -87,6 +87,7 @@ from ddogctl.commands.config import config
 from ddogctl.commands.incident import incident
 from ddogctl.commands.user import user
 from ddogctl.commands.usage import usage
+from ddogctl.commands.ci import ci
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -110,6 +111,7 @@ main.add_command(config)
 main.add_command(incident)
 main.add_command(user)
 main.add_command(usage)
+main.add_command(ci)
 
 
 if __name__ == "__main__":

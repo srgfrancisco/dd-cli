@@ -22,6 +22,8 @@ from datadog_api_client.v2.api import (
     incidents_api,
     users_api,
     rum_api,
+    ci_visibility_pipelines_api,
+    ci_visibility_tests_api,
 )
 from ddogctl.config import DatadogConfig
 
@@ -61,6 +63,8 @@ class DatadogClient:
         self.incidents = incidents_api.IncidentsApi(self.api_client)
         self.users = users_api.UsersApi(self.api_client)
         self.rum = rum_api.RUMApi(self.api_client)
+        self.ci_pipelines = ci_visibility_pipelines_api.CIVisibilityPipelinesApi(self.api_client)
+        self.ci_tests = ci_visibility_tests_api.CIVisibilityTestsApi(self.api_client)
 
     def __enter__(self):
         return self
