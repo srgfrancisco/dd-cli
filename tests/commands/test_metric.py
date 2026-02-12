@@ -4,7 +4,7 @@ import pytest
 import json
 from unittest.mock import Mock, patch
 from click.testing import CliRunner
-from ddg.commands.metric import metric
+from ddogctl.commands.metric import metric
 
 
 class MockMetricQueryResponse:
@@ -67,7 +67,7 @@ def test_metric_query_json_format(mock_client, runner):
     )
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["query", "avg:system.cpu.user{*}", "--format", "json"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -97,7 +97,7 @@ def test_metric_query_csv_format(mock_client, runner):
     )
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["query", "avg:database.connections{*}", "--format", "csv"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -125,7 +125,7 @@ def test_metric_query_table_format(mock_client, runner):
     )
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["query", "p90:trace.web.request{*}", "--format", "table"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -140,7 +140,7 @@ def test_metric_query_no_data(mock_client, runner):
     mock_response = MockMetricQueryResponse(series=[])
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["query", "avg:nonexistent.metric{*}"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -154,8 +154,8 @@ def test_metric_query_time_range(mock_client, runner):
     mock_response = MockMetricQueryResponse(series=[])
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
-        with patch("ddg.commands.metric.parse_time_range") as mock_parse_time:
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
+        with patch("ddogctl.commands.metric.parse_time_range") as mock_parse_time:
             mock_parse_time.return_value = (1609459200, 1609545600)
 
             result = runner.invoke(
@@ -188,7 +188,7 @@ def test_metric_search_results(mock_client, runner):
     )
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "system.cpu"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -207,7 +207,7 @@ def test_metric_search_with_limit(mock_client, runner):
     mock_response = MockMetricListResponse(metrics=metrics)
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "metric", "--limit", "10"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -225,7 +225,7 @@ def test_metric_search_no_results(mock_client, runner):
     mock_response = MockMetricListResponse(metrics=[])
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "nonexistent.metric"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -241,7 +241,7 @@ def test_metric_search_no_results_after_filtering(mock_client, runner):
     )
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "nonexistent"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -261,7 +261,7 @@ def test_metric_search_client_side_filtering(mock_client, runner):
     )
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "cpu"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -280,7 +280,7 @@ def test_metric_search_case_insensitive(mock_client, runner):
     mock_response = MockMetricListResponse(metrics=["system.CPU.user", "system.cpu.system"])
     mock_client.metrics.list_active_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["search", "CPU"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -299,7 +299,7 @@ def test_metric_metadata(mock_client, runner):
     )
     mock_client.metrics.get_metric_metadata.return_value = mock_metadata
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["metadata", "system.cpu.user"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -316,7 +316,7 @@ def test_metric_metadata_minimal(mock_client, runner):
     mock_metadata = MockMetricMetadata(metric_name="custom.metric")
     mock_client.metrics.get_metric_metadata.return_value = mock_metadata
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["metadata", "custom.metric"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -343,7 +343,7 @@ def test_metric_query_multiple_series(mock_client, runner):
     )
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             metric, ["query", "avg:system.cpu.user{*} by {host}", "--format", "json"]
         )
@@ -371,7 +371,7 @@ def test_metric_query_table_format_truncates_points(mock_client, runner):
     )
     mock_client.metrics.query_metrics.return_value = mock_response
 
-    with patch("ddg.commands.metric.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.metric.get_datadog_client", return_value=mock_client):
         result = runner.invoke(metric, ["query", "avg:system.load.1{*}", "--format", "table"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"

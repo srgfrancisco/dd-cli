@@ -16,7 +16,7 @@ def mock_client():
     Example:
         def test_something(mock_client):
             mock_client.monitors.list_monitors.return_value = [...]
-            with patch('ddg.commands.monitor.get_datadog_client', return_value=mock_client):
+            with patch('ddogctl.commands.monitor.get_datadog_client', return_value=mock_client):
                 # test code
     """
     client = Mock()

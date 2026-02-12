@@ -1,4 +1,4 @@
-# ddg-cli
+# ddogctl
 
 **A modern CLI for the Datadog API. Like Dogshell, but better.**
 
@@ -12,9 +12,9 @@
 - Retry logic with exponential backoff
 - Region shortcuts (`us`, `eu`, `us3`, `us5`, `ap1`, `gov`)
 
-## ddg-cli vs Dogshell
+## ddogctl vs Dogshell
 
-| Feature | ddg-cli | Dogshell |
+| Feature | ddogctl | Dogshell |
 |---|---|---|
 | Rich terminal output | Yes | No |
 | APM traces | Yes | No |
@@ -27,19 +27,19 @@
 ## Installation
 
 ```bash
-pip install ddg-cli
+pip install ddogctl
 ```
 
 Or with pipx:
 
 ```bash
-pipx install ddg-cli
+pipx install ddogctl
 ```
 
 Or with uv:
 
 ```bash
-uv pip install ddg-cli
+uv pip install ddogctl
 ```
 
 ## Configuration
@@ -67,36 +67,36 @@ export DD_SITE="us"  # optional, defaults to datadoghq.com
 
 ```bash
 # Monitors
-ddg monitor list --state Alert
-ddg monitor get 12345
+ddogctl monitor list --state Alert
+ddogctl monitor get 12345
 
 # Metrics
-ddg metric query "avg:system.cpu.user{env:prod}" --from 1h
-ddg metric search "cpu"
+ddogctl metric query "avg:system.cpu.user{env:prod}" --from 1h
+ddogctl metric search "cpu"
 
 # Events
-ddg event list --from 1d --priority normal
-ddg event post "Deployment" "v2.1.0 deployed to prod"
+ddogctl event list --from 1d --priority normal
+ddogctl event post "Deployment" "v2.1.0 deployed to prod"
 
 # Hosts
-ddg host list --filter "env:prod"
-ddg host info web-prod-01
+ddogctl host list --filter "env:prod"
+ddogctl host info web-prod-01
 
 # APM
-ddg apm services
-ddg apm traces my-service --from 1h
+ddogctl apm services
+ddogctl apm traces my-service --from 1h
 
 # Logs
-ddg logs search "status:error" --service my-api --from 30m
-ddg logs tail "env:prod" --follow
+ddogctl logs search "status:error" --service my-api --from 30m
+ddogctl logs tail "env:prod" --follow
 
 # Database Monitoring
-ddg dbm slow-queries --service postgres-prod --from 1h
-ddg dbm explain "SELECT * FROM users WHERE id = 1"
+ddogctl dbm slow-queries --service postgres-prod --from 1h
+ddogctl dbm explain "SELECT * FROM users WHERE id = 1"
 
 # Investigation Workflows
-ddg investigate service my-api --from 1h
-ddg investigate host web-prod-01 --from 30m
+ddogctl investigate service my-api --from 1h
+ddogctl investigate host web-prod-01 --from 30m
 ```
 
 ## Contributing

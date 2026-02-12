@@ -8,14 +8,14 @@ from tests.conftest import create_mock_service_list, create_mock_span
 
 def test_apm_services_list_json_format(mock_client, runner):
     """Test listing APM services in JSON format."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_services = create_mock_service_list(
         ["web-prod-blue", "web-prod-green", "marketplace-prod"]
     )
     mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["services", "--format", "json"])
 
         assert result.exit_code == 0
@@ -29,12 +29,12 @@ def test_apm_services_list_json_format(mock_client, runner):
 
 def test_apm_services_list_table_format(mock_client, runner):
     """Test listing APM services in table format."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_services = create_mock_service_list(["service-a", "service-b"])
     mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["services"])
         assert result.exit_code == 0
         assert "APM Services" in result.output
@@ -45,12 +45,12 @@ def test_apm_services_list_table_format(mock_client, runner):
 
 def test_apm_services_empty(mock_client, runner):
     """Test listing APM services when no services exist."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_services = create_mock_service_list([])
     mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["services"])
         assert result.exit_code == 0
         assert "Total services: 0" in result.output
@@ -58,12 +58,12 @@ def test_apm_services_empty(mock_client, runner):
 
 def test_apm_services_sorted(mock_client, runner):
     """Test APM services are sorted alphabetically."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_services = create_mock_service_list(["zebra-service", "alpha-service", "beta-service"])
     mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["services", "--format", "json"])
         assert result.exit_code == 0
         services = json.loads(result.output)
@@ -84,12 +84,12 @@ def test_apm_services_sorted(mock_client, runner):
 
 def test_apm_services_includes_both_web_fleets(mock_client, runner):
     """Test that both web-prod-blue and web-prod-green are visible."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_services = create_mock_service_list(["web-prod-blue", "web-prod-green", "other-service"])
     mock_client.service_definitions.list_service_definitions.return_value = mock_services
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["services", "--format", "json"])
         assert result.exit_code == 0
         services = json.loads(result.output)
@@ -104,7 +104,7 @@ def test_apm_services_includes_both_web_fleets(mock_client, runner):
 
 def test_apm_traces_basic_search(mock_client, runner):
     """Test basic trace search with default parameters."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     now = datetime.now()
     start = now - timedelta(seconds=5)
@@ -122,7 +122,7 @@ def test_apm_traces_basic_search(mock_client, runner):
     mock_response = Mock(data=mock_spans, meta=Mock(page=Mock(after=None)))
     mock_client.spans.list_spans_get.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["traces", "web-prod-blue", "--format", "json"])
 
         assert result.exit_code == 0
@@ -136,7 +136,7 @@ def test_apm_traces_basic_search(mock_client, runner):
 
 def test_apm_traces_table_format(mock_client, runner):
     """Test traces display in table format."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     now = datetime.now()
     start = now - timedelta(seconds=5)
@@ -154,7 +154,7 @@ def test_apm_traces_table_format(mock_client, runner):
     mock_response = Mock(data=mock_spans, meta=Mock(page=Mock(after=None)))
     mock_client.spans.list_spans_get.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["traces", "web-prod-blue"])
         assert result.exit_code == 0
         assert "Traces for web-prod-blue" in result.output
@@ -166,12 +166,12 @@ def test_apm_traces_table_format(mock_client, runner):
 
 def test_apm_traces_empty_results(mock_client, runner):
     """Test traces command with no results."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.spans.list_spans_get.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["traces", "nonexistent-service"])
         assert result.exit_code == 0
         assert "Total traces: 0" in result.output
@@ -179,7 +179,7 @@ def test_apm_traces_empty_results(mock_client, runner):
 
 def test_apm_traces_duration_conversion(mock_client, runner):
     """Test that nanoseconds are correctly converted to milliseconds."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     now = datetime.now()
     start = now - timedelta(seconds=5)
@@ -198,7 +198,7 @@ def test_apm_traces_duration_conversion(mock_client, runner):
     mock_response = Mock(data=mock_spans, meta=Mock(page=Mock(after=None)))
     mock_client.spans.list_spans_get.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["traces", "test-service", "--format", "json"])
         assert result.exit_code == 0
         output = json.loads(result.output)
@@ -208,7 +208,7 @@ def test_apm_traces_duration_conversion(mock_client, runner):
 
 def test_apm_traces_with_limit(mock_client, runner):
     """Test traces command respects limit parameter."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     now = datetime.now()
     start = now - timedelta(seconds=5)
@@ -227,7 +227,7 @@ def test_apm_traces_with_limit(mock_client, runner):
     mock_response = Mock(data=mock_spans, meta=Mock(page=Mock(after=None)))
     mock_client.spans.list_spans_get.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["traces", "test-service", "--limit", "3"])
         # Mock will return all 5, but API would respect limit in real scenario
         # Just verify the command accepts the parameter
@@ -242,7 +242,7 @@ def test_apm_traces_with_limit(mock_client, runner):
 
 def test_apm_analytics_count_metric(mock_client, runner):
     """Test analytics with count aggregation."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     class MockBucket:
         def __init__(self, resource, count):
@@ -253,7 +253,7 @@ def test_apm_analytics_count_metric(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.spans.aggregate_spans.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             apm,
             [
@@ -279,7 +279,7 @@ def test_apm_analytics_count_metric(mock_client, runner):
 
 def test_apm_analytics_p99_metric(mock_client, runner):
     """Test analytics with p99 latency aggregation."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     class MockBucket:
         def __init__(self, resource, p99_ns):
@@ -294,7 +294,7 @@ def test_apm_analytics_p99_metric(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.spans.aggregate_spans.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             apm,
             [
@@ -319,7 +319,7 @@ def test_apm_analytics_p99_metric(mock_client, runner):
 
 def test_apm_analytics_without_groupby(mock_client, runner):
     """Test analytics without group-by (single aggregate value)."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     class MockBucket:
         def __init__(self, count):
@@ -330,7 +330,7 @@ def test_apm_analytics_without_groupby(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.spans.aggregate_spans.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             apm, ["analytics", "web-prod-blue", "--metric", "count", "--format", "json"]
         )
@@ -343,7 +343,7 @@ def test_apm_analytics_without_groupby(mock_client, runner):
 
 def test_apm_analytics_table_format(mock_client, runner):
     """Test analytics display in table format."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     class MockBucket:
         def __init__(self, resource, count):
@@ -354,7 +354,7 @@ def test_apm_analytics_table_format(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.spans.aggregate_spans.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             apm, ["analytics", "web-prod-blue", "--metric", "count", "--group-by", "resource_name"]
         )
@@ -371,12 +371,12 @@ def test_apm_analytics_table_format(mock_client, runner):
 
 def test_apm_analytics_empty_results(mock_client, runner):
     """Test analytics with no results."""
-    from ddg.commands.apm import apm
+    from ddogctl.commands.apm import apm
 
     mock_response = Mock(data=Mock(buckets=[]))
     mock_client.spans.aggregate_spans.return_value = mock_response
 
-    with patch("ddg.commands.apm.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.apm.get_datadog_client", return_value=mock_client):
         result = runner.invoke(apm, ["analytics", "nonexistent-service", "--metric", "count"])
 
         assert result.exit_code == 0

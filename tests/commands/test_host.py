@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock, patch
 from click.testing import CliRunner
-from ddg.commands.host import host
+from ddogctl.commands.host import host
 
 
 class MockHost:
@@ -82,7 +82,7 @@ def test_host_list_with_filter(mock_client, runner):
     mock_response = MockHostListResponse(mock_hosts, total_matching=2)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["list", "--filter", "service:web", "--format", "json"])
 
         assert result.exit_code == 0, f"Command failed: {result.output}"
@@ -105,7 +105,7 @@ def test_host_list_no_hosts_found(mock_client, runner):
     mock_response = MockHostListResponse([], total_matching=0)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["list", "--filter", "service:nonexistent"])
 
         assert result.exit_code == 0
@@ -126,7 +126,7 @@ def test_host_list_table_format(mock_client, runner):
     mock_response = MockHostListResponse(mock_hosts, total_matching=2)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["list"])
 
         assert result.exit_code == 0
@@ -146,7 +146,7 @@ def test_host_list_limit_parameter(mock_client, runner):
     mock_response = MockHostListResponse(mock_hosts, total_matching=50)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["list", "--limit", "25", "--format", "json"])
 
         assert result.exit_code == 0
@@ -171,7 +171,7 @@ def test_host_get_found(mock_client, runner):
     mock_response = MockHostListResponse([mock_host], total_matching=1)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["get", "web-prod-01", "--format", "json"])
 
         assert result.exit_code == 0
@@ -194,7 +194,7 @@ def test_host_get_not_found(mock_client, runner):
     mock_response = MockHostListResponse([], total_matching=0)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["get", "nonexistent-host"])
 
         assert result.exit_code == 0
@@ -224,7 +224,7 @@ def test_host_get_table_format(mock_client, runner):
     mock_response = MockHostListResponse([mock_host], total_matching=1)
     mock_client.hosts.list_hosts.return_value = mock_response
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["get", "web-prod-01"])
 
         assert result.exit_code == 0
@@ -247,7 +247,7 @@ def test_host_totals(mock_client, runner):
     mock_totals = MockHostTotals(total_active=150, total_up=145, total_down=5)
     mock_client.hosts.get_host_totals.return_value = mock_totals
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["totals"])
 
         assert result.exit_code == 0
@@ -264,7 +264,7 @@ def test_host_totals_without_down_attribute(mock_client, runner):
     del mock_totals.total_down
     mock_client.hosts.get_host_totals.return_value = mock_totals
 
-    with patch("ddg.commands.host.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.host.get_datadog_client", return_value=mock_client):
         result = runner.invoke(host, ["totals"])
 
         assert result.exit_code == 0

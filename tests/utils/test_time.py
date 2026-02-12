@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
-from ddg.utils.time import parse_time_range
+from ddogctl.utils.time import parse_time_range
 
 
 class TestParseTimeRange:
@@ -16,7 +16,7 @@ class TestParseTimeRange:
 
     def test_now_to_now(self, mock_now):
         """Test 'now' to 'now' returns same timestamp."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             from_ts, to_ts = parse_time_range("now", "now")
 
@@ -25,7 +25,7 @@ class TestParseTimeRange:
 
     def test_hours_ago(self, mock_now):
         """Test relative hour parsing (1h, 24h, etc.)."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 1 hour ago
@@ -41,7 +41,7 @@ class TestParseTimeRange:
 
     def test_days_ago(self, mock_now):
         """Test relative day parsing (1d, 7d, etc.)."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 7 days ago
@@ -52,7 +52,7 @@ class TestParseTimeRange:
 
     def test_minutes_ago(self, mock_now):
         """Test relative minute parsing (30m, 60m, etc.)."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 30 minutes ago
@@ -63,7 +63,7 @@ class TestParseTimeRange:
 
     def test_iso_datetime_parsing(self, mock_now):
         """Test ISO datetime format parsing."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             # Need to patch fromisoformat to work correctly
             mock_datetime.fromisoformat = datetime.fromisoformat
@@ -82,7 +82,7 @@ class TestParseTimeRange:
 
     def test_mixed_formats(self, mock_now):
         """Test mixing relative and ISO formats."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.fromisoformat = datetime.fromisoformat
 
@@ -105,7 +105,7 @@ class TestParseTimeRange:
 
     def test_default_to_parameter(self, mock_now):
         """Test that 'to' parameter defaults to 'now'."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # Only provide 'from', 'to' should default to 'now'
@@ -117,7 +117,7 @@ class TestParseTimeRange:
 
     def test_large_time_values(self, mock_now):
         """Test edge cases with large time values."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 365 days (1 year)
@@ -132,7 +132,7 @@ class TestParseTimeRange:
 
     def test_zero_values(self, mock_now):
         """Test edge case with zero time values."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 0 hours ago (equivalent to now)
@@ -175,7 +175,7 @@ class TestParseTimeRange:
 
     def test_time_range_order(self, mock_now):
         """Test that from_ts can be greater than to_ts (no validation enforced)."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 'from' is in the future relative to 'to' (now vs 1h ago)
@@ -192,7 +192,7 @@ class TestParseTimeRange:
 
     def test_timestamp_precision(self, mock_now):
         """Test that timestamps are returned as integers (no fractional seconds)."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             from_ts, to_ts = parse_time_range("1h", "now")
@@ -202,7 +202,7 @@ class TestParseTimeRange:
 
     def test_multiple_digit_values(self, mock_now):
         """Test parsing of multi-digit time values."""
-        with patch("ddg.utils.time.datetime") as mock_datetime:
+        with patch("ddogctl.utils.time.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
 
             # 100 hours

@@ -20,23 +20,23 @@ def main():
         DD_SITE - Datadog site (default: datadoghq.com)
 
     Examples:
-        ddg monitor list --state Alert
-        ddg apm traces my-service --from 1h
-        ddg logs search "status:error" --service my-api
+        ddogctl monitor list --state Alert
+        ddogctl apm traces my-service --from 1h
+        ddogctl logs search "status:error" --service my-api
     """
     pass
 
 
 # Import and register all command groups
 # ruff: noqa: E402
-from ddg.commands.monitor import monitor
-from ddg.commands.metric import metric
-from ddg.commands.event import event
-from ddg.commands.host import host
-from ddg.commands.apm import apm
-from ddg.commands.logs import logs
-from ddg.commands.dbm import dbm
-from ddg.commands.investigate import investigate
+from ddogctl.commands.monitor import monitor
+from ddogctl.commands.metric import metric
+from ddogctl.commands.event import event
+from ddogctl.commands.host import host
+from ddogctl.commands.apm import apm
+from ddogctl.commands.logs import logs
+from ddogctl.commands.dbm import dbm
+from ddogctl.commands.investigate import investigate
 
 main.add_command(monitor)
 main.add_command(metric)

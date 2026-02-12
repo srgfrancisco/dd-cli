@@ -10,7 +10,7 @@ from tests.conftest import create_mock_log
 
 def test_logs_search_basic_query(mock_client, runner):
     """Test basic log search returns correct count."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -20,7 +20,7 @@ def test_logs_search_basic_query(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--format", "json"])
 
         assert result.exit_code == 0
@@ -30,7 +30,7 @@ def test_logs_search_basic_query(mock_client, runner):
 
 def test_logs_search_table_format(mock_client, runner):
     """Test search displays table with correct headers and content."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -39,7 +39,7 @@ def test_logs_search_table_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*"])
 
         assert result.exit_code == 0
@@ -53,7 +53,7 @@ def test_logs_search_table_format(mock_client, runner):
 
 def test_logs_search_json_format(mock_client, runner):
     """Test search JSON output has expected fields."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -62,7 +62,7 @@ def test_logs_search_json_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--format", "json"])
 
         assert result.exit_code == 0
@@ -76,12 +76,12 @@ def test_logs_search_json_format(mock_client, runner):
 
 def test_logs_search_with_time_range(mock_client, runner):
     """Test search with --from 24h is accepted."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--from", "24h"])
 
         assert result.exit_code == 0
@@ -90,12 +90,12 @@ def test_logs_search_with_time_range(mock_client, runner):
 
 def test_logs_search_with_service_filter(mock_client, runner):
     """Test search with --service adds service to query."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--service", "web-api"])
 
         assert result.exit_code == 0
@@ -106,12 +106,12 @@ def test_logs_search_with_service_filter(mock_client, runner):
 
 def test_logs_search_with_status_filter(mock_client, runner):
     """Test search with --status adds status to query."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--status", "error"])
 
         assert result.exit_code == 0
@@ -122,12 +122,12 @@ def test_logs_search_with_status_filter(mock_client, runner):
 
 def test_logs_search_empty_results(mock_client, runner):
     """Test search with no results shows total 0."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "nonexistent"])
 
         assert result.exit_code == 0
@@ -136,12 +136,12 @@ def test_logs_search_empty_results(mock_client, runner):
 
 def test_logs_search_with_limit(mock_client, runner):
     """Test search respects --limit parameter."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["search", "*", "--limit", "10"])
 
         assert result.exit_code == 0
@@ -155,7 +155,7 @@ def test_logs_search_with_limit(mock_client, runner):
 
 def test_logs_tail_basic(mock_client, runner):
     """Test tail returns recent logs."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -164,7 +164,7 @@ def test_logs_tail_basic(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["tail", "*", "--format", "json"])
 
         assert result.exit_code == 0
@@ -175,12 +175,12 @@ def test_logs_tail_basic(mock_client, runner):
 
 def test_logs_tail_with_lines(mock_client, runner):
     """Test tail respects --lines parameter."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["tail", "*", "--lines", "25"])
 
         assert result.exit_code == 0
@@ -191,12 +191,12 @@ def test_logs_tail_with_lines(mock_client, runner):
 
 def test_logs_tail_with_service_filter(mock_client, runner):
     """Test tail with --service filter works."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["tail", "*", "--service", "web-api"])
 
         assert result.exit_code == 0
@@ -207,7 +207,7 @@ def test_logs_tail_with_service_filter(mock_client, runner):
 
 def test_logs_tail_color_coded(mock_client, runner):
     """Test tail output contains log messages."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -218,7 +218,7 @@ def test_logs_tail_color_coded(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["tail", "*"])
 
         assert result.exit_code == 0
@@ -229,12 +229,12 @@ def test_logs_tail_color_coded(mock_client, runner):
 
 def test_logs_tail_empty(mock_client, runner):
     """Test tail shows 'No logs found' when empty."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["tail", "*"])
 
         assert result.exit_code == 0
@@ -246,7 +246,7 @@ def test_logs_tail_empty(mock_client, runner):
 
 def test_logs_query_count_by_service(mock_client, runner):
     """Test log query with count aggregation grouped by service."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     class MockBucket:
         def __init__(self, service, count):
@@ -260,7 +260,7 @@ def test_logs_query_count_by_service(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             logs,
             [
@@ -287,7 +287,7 @@ def test_logs_query_count_by_service(mock_client, runner):
 
 def test_logs_query_count_by_status(mock_client, runner):
     """Test log query grouped by status."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     class MockBucket:
         def __init__(self, status, count):
@@ -301,7 +301,7 @@ def test_logs_query_count_by_status(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             logs,
             [
@@ -326,7 +326,7 @@ def test_logs_query_count_by_status(mock_client, runner):
 
 def test_logs_query_json_format(mock_client, runner):
     """Test log query JSON output is valid."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     class MockBucket:
         def __init__(self, service, count):
@@ -337,7 +337,7 @@ def test_logs_query_json_format(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             logs, ["query", "--metric", "count", "--group-by", "service", "--format", "json"]
         )
@@ -350,7 +350,7 @@ def test_logs_query_json_format(mock_client, runner):
 
 def test_logs_query_table_format(mock_client, runner):
     """Test log query table has correct columns."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     class MockBucket:
         def __init__(self, service, count):
@@ -364,7 +364,7 @@ def test_logs_query_table_format(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["query", "--metric", "count", "--group-by", "service"])
 
         assert result.exit_code == 0
@@ -378,7 +378,7 @@ def test_logs_query_table_format(mock_client, runner):
 
 def test_logs_query_without_groupby(mock_client, runner):
     """Test log query without group-by returns single aggregate."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     class MockBucket:
         def __init__(self, count):
@@ -389,7 +389,7 @@ def test_logs_query_without_groupby(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["query", "--metric", "count", "--format", "json"])
 
         assert result.exit_code == 0
@@ -400,12 +400,12 @@ def test_logs_query_without_groupby(mock_client, runner):
 
 def test_logs_query_empty_results(mock_client, runner):
     """Test log query with no results shows total 0."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=Mock(buckets=[]))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["query", "--metric", "count"])
 
         assert result.exit_code == 0
@@ -417,7 +417,7 @@ def test_logs_query_empty_results(mock_client, runner):
 
 def test_logs_trace_basic(mock_client, runner):
     """Test finding logs for a trace ID."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -427,7 +427,7 @@ def test_logs_trace_basic(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["trace", "abc123", "--format", "json"])
 
         assert result.exit_code == 0
@@ -437,7 +437,7 @@ def test_logs_trace_basic(mock_client, runner):
 
 def test_logs_trace_json_format(mock_client, runner):
     """Test trace logs JSON output."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -446,7 +446,7 @@ def test_logs_trace_json_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["trace", "trace-xyz", "--format", "json"])
 
         assert result.exit_code == 0
@@ -458,7 +458,7 @@ def test_logs_trace_json_format(mock_client, runner):
 
 def test_logs_trace_table_format(mock_client, runner):
     """Test trace logs table output includes trace ID in title."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     now = datetime.now()
     mock_logs = [
@@ -467,7 +467,7 @@ def test_logs_trace_table_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["trace", "trace-456"])
 
         assert result.exit_code == 0
@@ -477,12 +477,12 @@ def test_logs_trace_table_format(mock_client, runner):
 
 def test_logs_trace_not_found(mock_client, runner):
     """Test trace with no matching logs shows 'No logs found'."""
-    from ddg.commands.logs import logs
+    from ddogctl.commands.logs import logs
 
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
         result = runner.invoke(logs, ["trace", "nonexistent-trace"])
 
         assert result.exit_code == 0

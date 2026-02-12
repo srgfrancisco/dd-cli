@@ -36,7 +36,7 @@ class MockLog:
 
 def test_investigate_latency_basic(mock_client, runner):
     """Test latency investigation runs full workflow and outputs summary."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Step 1: p99 response - 250ms in nanoseconds
     p99_response = Mock(data=Mock(buckets=[MockBucket(250_000_000)]))
@@ -62,7 +62,7 @@ def test_investigate_latency_basic(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [p99_response, endpoints_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["latency", "my-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -75,7 +75,7 @@ def test_investigate_latency_basic(mock_client, runner):
 
 def test_investigate_latency_json_format(mock_client, runner):
     """Test latency investigation produces valid JSON with all required fields."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     p99_response = Mock(data=Mock(buckets=[MockBucket(180_000_000)]))
     endpoints_response = Mock(
@@ -90,7 +90,7 @@ def test_investigate_latency_json_format(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [p99_response, endpoints_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["latency", "web-api", "--format", "json"])
 
         assert result.exit_code == 0
@@ -106,7 +106,7 @@ def test_investigate_latency_json_format(mock_client, runner):
 
 def test_investigate_latency_table_format(mock_client, runner):
     """Test latency investigation renders a rich table with investigation results."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     p99_response = Mock(data=Mock(buckets=[MockBucket(350_000_000)]))
     endpoints_response = Mock(
@@ -121,7 +121,7 @@ def test_investigate_latency_table_format(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [p99_response, endpoints_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["latency", "my-service"])
 
         assert result.exit_code == 0
@@ -134,7 +134,7 @@ def test_investigate_latency_table_format(mock_client, runner):
 
 def test_investigate_latency_no_issues(mock_client, runner):
     """Test latency investigation for a service with healthy latency and no errors."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Low p99 latency
     p99_response = Mock(data=Mock(buckets=[MockBucket(50_000_000)]))  # 50ms
@@ -146,7 +146,7 @@ def test_investigate_latency_no_issues(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [p99_response, endpoints_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["latency", "healthy-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -159,7 +159,7 @@ def test_investigate_latency_no_issues(mock_client, runner):
 
 def test_investigate_latency_custom_threshold(mock_client, runner):
     """Test latency investigation respects --threshold option."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     p99_response = Mock(data=Mock(buckets=[MockBucket(800_000_000)]))
     endpoints_response = Mock(data=Mock(buckets=[]))
@@ -168,7 +168,7 @@ def test_investigate_latency_custom_threshold(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [p99_response, endpoints_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             investigate, ["latency", "my-service", "--threshold", "1000", "--format", "json"]
         )
@@ -192,7 +192,7 @@ def test_investigate_latency_custom_threshold(mock_client, runner):
 
 def test_investigate_errors_basic(mock_client, runner):
     """Test errors investigation finds errors across traces and logs."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Step 1: total error count
     error_count_response = Mock(data=Mock(buckets=[MockBucket(42)]))
@@ -216,7 +216,7 @@ def test_investigate_errors_basic(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [error_count_response, by_endpoint_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["errors", "my-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -229,7 +229,7 @@ def test_investigate_errors_basic(mock_client, runner):
 
 def test_investigate_errors_json_format(mock_client, runner):
     """Test errors investigation produces valid JSON with all required fields."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     error_count_response = Mock(data=Mock(buckets=[MockBucket(10)]))
     by_endpoint_response = Mock(
@@ -244,7 +244,7 @@ def test_investigate_errors_json_format(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [error_count_response, by_endpoint_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["errors", "web-api", "--format", "json"])
 
         assert result.exit_code == 0
@@ -259,7 +259,7 @@ def test_investigate_errors_json_format(mock_client, runner):
 
 def test_investigate_errors_table_format(mock_client, runner):
     """Test errors investigation renders a table output."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     error_count_response = Mock(data=Mock(buckets=[MockBucket(5)]))
     by_endpoint_response = Mock(
@@ -274,7 +274,7 @@ def test_investigate_errors_table_format(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [error_count_response, by_endpoint_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["errors", "my-service"])
 
         assert result.exit_code == 0
@@ -286,7 +286,7 @@ def test_investigate_errors_table_format(mock_client, runner):
 
 def test_investigate_errors_no_errors(mock_client, runner):
     """Test errors investigation for a clean service with no errors."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     error_count_response = Mock(data=Mock(buckets=[MockBucket(0)]))
     by_endpoint_response = Mock(data=Mock(buckets=[]))
@@ -295,7 +295,7 @@ def test_investigate_errors_no_errors(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [error_count_response, by_endpoint_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["errors", "clean-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -307,7 +307,7 @@ def test_investigate_errors_no_errors(mock_client, runner):
 
 def test_investigate_errors_with_time_range(mock_client, runner):
     """Test errors investigation respects --from and --to time range."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     error_count_response = Mock(data=Mock(buckets=[MockBucket(3)]))
     by_endpoint_response = Mock(data=Mock(buckets=[]))
@@ -316,7 +316,7 @@ def test_investigate_errors_with_time_range(mock_client, runner):
     mock_client.spans.aggregate_spans.side_effect = [error_count_response, by_endpoint_response]
     mock_client.logs.list_logs.return_value = logs_response
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(
             investigate, ["errors", "my-service", "--from", "24h", "--to", "now"]
         )
@@ -338,7 +338,7 @@ def test_investigate_errors_with_time_range(mock_client, runner):
 
 def test_investigate_throughput_basic(mock_client, runner):
     """Test throughput investigation shows request counts."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Step 1: total request count
     total_response = Mock(data=Mock(buckets=[MockBucket(15000)]))
@@ -355,7 +355,7 @@ def test_investigate_throughput_basic(mock_client, runner):
 
     mock_client.spans.aggregate_spans.side_effect = [total_response, by_endpoint_response]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["throughput", "my-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -367,7 +367,7 @@ def test_investigate_throughput_basic(mock_client, runner):
 
 def test_investigate_throughput_json_format(mock_client, runner):
     """Test throughput investigation produces valid JSON with total_requests and by_endpoint."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     total_response = Mock(data=Mock(buckets=[MockBucket(500)]))
     by_endpoint_response = Mock(
@@ -380,7 +380,7 @@ def test_investigate_throughput_json_format(mock_client, runner):
 
     mock_client.spans.aggregate_spans.side_effect = [total_response, by_endpoint_response]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["throughput", "web-api", "--format", "json"])
 
         assert result.exit_code == 0
@@ -394,7 +394,7 @@ def test_investigate_throughput_json_format(mock_client, runner):
 
 def test_investigate_throughput_table_format(mock_client, runner):
     """Test throughput investigation renders table with endpoints and counts."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     total_response = Mock(data=Mock(buckets=[MockBucket(3000)]))
     by_endpoint_response = Mock(
@@ -408,7 +408,7 @@ def test_investigate_throughput_table_format(mock_client, runner):
 
     mock_client.spans.aggregate_spans.side_effect = [total_response, by_endpoint_response]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["throughput", "my-service"])
 
         assert result.exit_code == 0
@@ -422,14 +422,14 @@ def test_investigate_throughput_table_format(mock_client, runner):
 
 def test_investigate_throughput_no_traffic(mock_client, runner):
     """Test throughput investigation for a service with zero requests."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     total_response = Mock(data=Mock(buckets=[MockBucket(0)]))
     by_endpoint_response = Mock(data=Mock(buckets=[]))
 
     mock_client.spans.aggregate_spans.side_effect = [total_response, by_endpoint_response]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["throughput", "idle-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -440,14 +440,14 @@ def test_investigate_throughput_no_traffic(mock_client, runner):
 
 def test_investigate_throughput_with_time_range(mock_client, runner):
     """Test throughput investigation respects --from time range."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     total_response = Mock(data=Mock(buckets=[MockBucket(100)]))
     by_endpoint_response = Mock(data=Mock(buckets=[]))
 
     mock_client.spans.aggregate_spans.side_effect = [total_response, by_endpoint_response]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["throughput", "my-service", "--from", "7d"])
 
         assert result.exit_code == 0
@@ -466,7 +466,7 @@ def test_investigate_throughput_with_time_range(mock_client, runner):
 
 def test_investigate_compare_basic(mock_client, runner):
     """Test compare investigation shows current vs baseline."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Current period: count=1000, p99=200ms
     current_count = Mock(data=Mock(buckets=[MockBucket(1000)]))
@@ -482,7 +482,7 @@ def test_investigate_compare_basic(mock_client, runner):
         baseline_p99,
     ]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["compare", "my-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -498,7 +498,7 @@ def test_investigate_compare_basic(mock_client, runner):
 
 def test_investigate_compare_json_format(mock_client, runner):
     """Test compare investigation produces JSON with current, baseline, and delta fields."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     current_count = Mock(data=Mock(buckets=[MockBucket(500)]))
     current_p99 = Mock(data=Mock(buckets=[MockBucket(300_000_000)]))
@@ -512,7 +512,7 @@ def test_investigate_compare_json_format(mock_client, runner):
         baseline_p99,
     ]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["compare", "web-api", "--format", "json"])
 
         assert result.exit_code == 0
@@ -528,7 +528,7 @@ def test_investigate_compare_json_format(mock_client, runner):
 
 def test_investigate_compare_table_format(mock_client, runner):
     """Test compare investigation renders table with Current, Baseline, Change columns."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     current_count = Mock(data=Mock(buckets=[MockBucket(1200)]))
     current_p99 = Mock(data=Mock(buckets=[MockBucket(250_000_000)]))
@@ -542,7 +542,7 @@ def test_investigate_compare_table_format(mock_client, runner):
         baseline_p99,
     ]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["compare", "my-service"])
 
         assert result.exit_code == 0
@@ -554,7 +554,7 @@ def test_investigate_compare_table_format(mock_client, runner):
 
 def test_investigate_compare_improvement(mock_client, runner):
     """Test compare investigation shows positive improvement (lower latency, same traffic)."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Current: lower latency than baseline
     current_count = Mock(data=Mock(buckets=[MockBucket(1000)]))
@@ -569,7 +569,7 @@ def test_investigate_compare_improvement(mock_client, runner):
         baseline_p99,
     ]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["compare", "my-service", "--format", "json"])
 
         assert result.exit_code == 0
@@ -581,7 +581,7 @@ def test_investigate_compare_improvement(mock_client, runner):
 
 def test_investigate_compare_degradation(mock_client, runner):
     """Test compare investigation shows negative degradation (higher latency)."""
-    from ddg.commands.investigate import investigate
+    from ddogctl.commands.investigate import investigate
 
     # Current: much higher latency than baseline
     current_count = Mock(data=Mock(buckets=[MockBucket(500)]))
@@ -596,7 +596,7 @@ def test_investigate_compare_degradation(mock_client, runner):
         baseline_p99,
     ]
 
-    with patch("ddg.commands.investigate.get_datadog_client", return_value=mock_client):
+    with patch("ddogctl.commands.investigate.get_datadog_client", return_value=mock_client):
         result = runner.invoke(investigate, ["compare", "my-service", "--format", "json"])
 
         assert result.exit_code == 0

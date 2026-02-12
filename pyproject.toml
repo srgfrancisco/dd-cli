@@ -3,13 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["ddg", "ddg.commands", "ddg.formatters", "ddg.models", "ddg.utils"]
+packages = ["ddogctl", "ddogctl.commands", "ddogctl.formatters", "ddogctl.models", "ddogctl.utils"]
 
 [project]
-name = "ddg-cli"
+name = "ddogctl"
 version = "1.0.0"
 description = "A modern CLI for the Datadog API. Like Dogshell, but better."
-license = {text = "MIT"}
+authors = [{name = "Sergio Francisco", email = "email@sergiofrancisco.com"}]
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["datadog", "cli", "monitoring", "observability", "apm", "logs"]
@@ -17,7 +18,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -47,11 +47,11 @@ dev = [
 ]
 
 [project.scripts]
-ddg = "ddg.cli:main"
+ddogctl = "ddogctl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/sergiofrancovel/ddg-cli"
-Issues = "https://github.com/sergiofrancovel/ddg-cli/issues"
+Homepage = "https://github.com/srgfrancisco/ddogctl"
+Issues = "https://github.com/srgfrancisco/ddogctl/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

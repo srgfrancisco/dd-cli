@@ -10,7 +10,7 @@ from datadog_api_client.v1.api import (
     tags_api,
 )
 from datadog_api_client.v2.api import logs_api, spans_api, service_definition_api
-from ddg.config import DatadogConfig
+from ddogctl.config import DatadogConfig
 
 
 class DatadogClient:
@@ -49,7 +49,7 @@ class DatadogClient:
 
 def get_datadog_client() -> DatadogClient:
     """Get configured Datadog client."""
-    from ddg.config import load_config
+    from ddogctl.config import load_config
 
     config = load_config()
     return DatadogClient(config)

@@ -1,10 +1,10 @@
-# Contributing to ddg-cli
+# Contributing to ddogctl
 
 ## Setup
 
 ```bash
-git clone https://github.com/sergiofrancovel/ddg-cli.git
-cd ddg-cli
+git clone https://github.com/srgfrancisco/ddogctl.git
+cd ddogctl
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -27,9 +27,9 @@ pytest tests/ -v
 ## Code Quality
 
 ```bash
-black --line-length 100 ddg/ tests/
-ruff check ddg/ tests/
-mypy ddg/ --ignore-missing-imports
+black --line-length 100 ddogctl/ tests/
+ruff check ddogctl/ tests/
+mypy ddogctl/ --ignore-missing-imports
 ```
 
 All tools are configured with `line-length = 100` in `pyproject.toml`.
@@ -38,12 +38,12 @@ All tools are configured with `line-length = 100` in `pyproject.toml`.
 
 - **One feature per PR.** Keep changes focused and reviewable.
 - **All tests must pass.** Run `pytest tests/ -v` before submitting.
-- **Follow existing patterns.** See `ddg/commands/apm.py` as the reference implementation.
+- **Follow existing patterns.** See `ddogctl/commands/apm.py` as the reference implementation.
 - **Include tests.** Every new command or feature needs corresponding tests.
 - **Run the full quality suite** before pushing:
 
 ```bash
-black --check ddg/ tests/
-ruff check ddg/ tests/
-pytest tests/ -v --cov=ddg
+black --check ddogctl/ tests/
+ruff check ddogctl/ tests/
+pytest tests/ -v --cov=ddogctl
 ```

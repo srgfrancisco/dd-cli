@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch
 from pydantic import ValidationError
-from ddg.config import DatadogConfig, load_config
+from ddogctl.config import DatadogConfig, load_config
 
 
 class TestDatadogConfig:
@@ -160,8 +160,8 @@ class TestLoadConfig:
         assert config.app_key == "env_app_key"
         assert config.site == "datadoghq.eu"  # 'eu' should be expanded
 
-    @patch("ddg.config.console")
-    @patch("ddg.config.DatadogConfig")
+    @patch("ddogctl.config.console")
+    @patch("ddogctl.config.DatadogConfig")
     def test_load_config_missing_credentials_exits(self, mock_config_class, mock_console):
         """Test that load_config exits when credentials are missing."""
         # Make DatadogConfig raise ValidationError
