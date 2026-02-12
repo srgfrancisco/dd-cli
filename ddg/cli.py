@@ -28,6 +28,7 @@ def main():
 
 
 # Import and register all command groups
+# ruff: noqa: E402
 from ddg.commands.monitor import monitor
 from ddg.commands.metric import metric
 from ddg.commands.event import event

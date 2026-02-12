@@ -1,7 +1,7 @@
 """Tests for configuration management."""
 
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from pydantic import ValidationError
 from ddg.config import DatadogConfig, load_config
 
@@ -11,10 +11,7 @@ class TestDatadogConfig:
 
     def test_config_with_all_required_fields(self):
         """Test configuration with all required fields."""
-        config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key"
-        )
+        config = DatadogConfig(DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key")
 
         assert config.api_key == "test_api_key"
         assert config.app_key == "test_app_key"
@@ -23,14 +20,12 @@ class TestDatadogConfig:
     def test_config_with_custom_site(self):
         """Test configuration with custom site."""
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            DD_SITE="custom.datadoghq.com"
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", DD_SITE="custom.datadoghq.com"
         )
 
         assert config.site == "custom.datadoghq.com"
 
-    @patch.dict('os.environ', {}, clear=True)
+    @patch.dict("os.environ", {}, clear=True)
     def test_config_missing_api_key(self):
         """Test that missing API key raises validation error."""
         with pytest.raises(ValidationError) as exc_info:
@@ -38,7 +33,7 @@ class TestDatadogConfig:
 
         assert "DD_API_KEY" in str(exc_info.value)
 
-    @patch.dict('os.environ', {}, clear=True)
+    @patch.dict("os.environ", {}, clear=True)
     def test_config_missing_app_key(self):
         """Test that missing APP key raises validation error."""
         with pytest.raises(ValidationError) as exc_info:
@@ -48,10 +43,7 @@ class TestDatadogConfig:
 
     def test_config_default_client_settings(self):
         """Test default client settings."""
-        config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key"
-        )
+        config = DatadogConfig(DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key")
 
         assert config.timeout == 30
         assert config.retry_count == 3
@@ -64,7 +56,7 @@ class TestDatadogConfig:
             DD_APP_KEY="test_app_key",
             timeout=60,
             retry_count=5,
-            retry_delay=2.5
+            retry_delay=2.5,
         )
 
         assert config.timeout == 60
@@ -73,10 +65,7 @@ class TestDatadogConfig:
 
     def test_config_default_display_options(self):
         """Test default display options."""
-        config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key"
-        )
+        config = DatadogConfig(DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key")
 
         assert config.default_format == "table"
         assert config.color_output is True
@@ -87,7 +76,7 @@ class TestDatadogConfig:
             DD_API_KEY="test_api_key",
             DD_APP_KEY="test_app_key",
             default_format="json",
-            color_output=False
+            color_output=False,
         )
 
         assert config.default_format == "json"
@@ -95,10 +84,7 @@ class TestDatadogConfig:
 
     def test_config_default_time_range(self):
         """Test default time range."""
-        config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key"
-        )
+        config = DatadogConfig(DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key")
 
         assert config.default_time_range == "1h"
 
@@ -106,35 +92,37 @@ class TestDatadogConfig:
 class TestRegionShortcuts:
     """Tests for region shortcut expansion."""
 
-    @pytest.mark.parametrize("shortcut,expected", [
-        ("us", "datadoghq.com"),
-        ("eu", "datadoghq.eu"),
-        ("us3", "us3.datadoghq.com"),
-        ("us5", "us5.datadoghq.com"),
-        ("ap1", "ap1.datadoghq.com"),
-        ("gov", "ddog-gov.com"),
-    ])
+    @pytest.mark.parametrize(
+        "shortcut,expected",
+        [
+            ("us", "datadoghq.com"),
+            ("eu", "datadoghq.eu"),
+            ("us3", "us3.datadoghq.com"),
+            ("us5", "us5.datadoghq.com"),
+            ("ap1", "ap1.datadoghq.com"),
+            ("gov", "ddog-gov.com"),
+        ],
+    )
     def test_region_shortcuts(self, shortcut, expected):
         """Test that region shortcuts are correctly expanded."""
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            DD_SITE=shortcut
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", DD_SITE=shortcut
         )
 
         assert config.site == expected
 
-    @pytest.mark.parametrize("shortcut,expected", [
-        ("US", "datadoghq.com"),
-        ("EU", "datadoghq.eu"),
-        ("Us3", "us3.datadoghq.com"),
-    ])
+    @pytest.mark.parametrize(
+        "shortcut,expected",
+        [
+            ("US", "datadoghq.com"),
+            ("EU", "datadoghq.eu"),
+            ("Us3", "us3.datadoghq.com"),
+        ],
+    )
     def test_region_shortcuts_case_insensitive(self, shortcut, expected):
         """Test that region shortcuts are case-insensitive."""
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            DD_SITE=shortcut
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", DD_SITE=shortcut
         )
 
         assert config.site == expected
@@ -143,9 +131,7 @@ class TestRegionShortcuts:
         """Test that custom domains are not expanded."""
         custom_domain = "custom.example.com"
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            DD_SITE=custom_domain
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", DD_SITE=custom_domain
         )
 
         assert config.site == custom_domain
@@ -154,9 +140,7 @@ class TestRegionShortcuts:
         """Test that partial matches are not expanded."""
         partial = "us-custom"
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            DD_SITE=partial
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", DD_SITE=partial
         )
 
         assert config.site == partial
@@ -165,11 +149,9 @@ class TestRegionShortcuts:
 class TestLoadConfig:
     """Tests for load_config function."""
 
-    @patch.dict('os.environ', {
-        'DD_API_KEY': 'env_api_key',
-        'DD_APP_KEY': 'env_app_key',
-        'DD_SITE': 'eu'
-    })
+    @patch.dict(
+        "os.environ", {"DD_API_KEY": "env_api_key", "DD_APP_KEY": "env_app_key", "DD_SITE": "eu"}
+    )
     def test_load_config_from_environment(self):
         """Test loading configuration from environment variables."""
         config = load_config()
@@ -178,15 +160,16 @@ class TestLoadConfig:
         assert config.app_key == "env_app_key"
         assert config.site == "datadoghq.eu"  # 'eu' should be expanded
 
-    @patch('ddg.config.console')
-    @patch('ddg.config.DatadogConfig')
+    @patch("ddg.config.console")
+    @patch("ddg.config.DatadogConfig")
     def test_load_config_missing_credentials_exits(self, mock_config_class, mock_console):
         """Test that load_config exits when credentials are missing."""
         # Make DatadogConfig raise ValidationError
         from pydantic import ValidationError as PydanticValidationError
+
         mock_config_class.side_effect = PydanticValidationError.from_exception_data(
-            'DatadogConfig',
-            [{'type': 'missing', 'loc': ('DD_APP_KEY',), 'msg': 'Field required', 'input': {}}]
+            "DatadogConfig",
+            [{"type": "missing", "loc": ("DD_APP_KEY",), "msg": "Field required", "input": {}}],
         )
 
         with pytest.raises(SystemExit) as exc_info:
@@ -201,10 +184,7 @@ class TestLoadConfig:
         assert any("DD_API_KEY" in str(call) for call in calls)
         assert any("DD_APP_KEY" in str(call) for call in calls)
 
-    @patch.dict('os.environ', {
-        'DD_API_KEY': 'env_api_key',
-        'DD_APP_KEY': 'env_app_key'
-    })
+    @patch.dict("os.environ", {"DD_API_KEY": "env_api_key", "DD_APP_KEY": "env_app_key"})
     def test_load_config_with_defaults(self):
         """Test that load_config applies default values correctly."""
         config = load_config()
@@ -215,13 +195,16 @@ class TestLoadConfig:
         assert config.color_output is True
         assert config.default_time_range == "1h"
 
-    @patch.dict('os.environ', {
-        'DD_API_KEY': 'env_api_key',
-        'DD_APP_KEY': 'env_app_key',
-        'DD_SITE': 'datadoghq.eu',
-        'timeout': '60',
-        'default_format': 'json'
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "DD_API_KEY": "env_api_key",
+            "DD_APP_KEY": "env_app_key",
+            "DD_SITE": "datadoghq.eu",
+            "timeout": "60",
+            "default_format": "json",
+        },
+    )
     def test_load_config_with_custom_values(self):
         """Test loading configuration with custom values."""
         config = load_config()
@@ -238,11 +221,9 @@ class TestConfigExtraFields:
         """Test that extra fields are ignored per model_config."""
         # This should not raise an error due to extra='ignore'
         config = DatadogConfig(
-            DD_API_KEY="test_api_key",
-            DD_APP_KEY="test_app_key",
-            unknown_field="should_be_ignored"
+            DD_API_KEY="test_api_key", DD_APP_KEY="test_app_key", unknown_field="should_be_ignored"
         )
 
         assert config.api_key == "test_api_key"
         assert config.app_key == "test_app_key"
-        assert not hasattr(config, 'unknown_field')
+        assert not hasattr(config, "unknown_field")

@@ -10,7 +10,17 @@ from ddg.commands.event import event
 class MockEvent:
     """Mock Datadog event object."""
 
-    def __init__(self, event_id, title, date_happened, source=None, priority=None, tags=None, text=None, url=None):
+    def __init__(
+        self,
+        event_id,
+        title,
+        date_happened,
+        source=None,
+        priority=None,
+        tags=None,
+        text=None,
+        url=None,
+    ):
         self.id = event_id
         self.title = title
         self.date_happened = date_happened

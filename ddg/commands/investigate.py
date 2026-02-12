@@ -39,7 +39,11 @@ def investigate_latency(service, from_time, to_time, threshold, fmt):
         # Step 1: Get p99 latency for spans above threshold
         p99_response = aggregate_spans(
             client,
-            {"query": f"service:{service} @duration:>{threshold_ns}", "from": from_str, "to": to_str},
+            {
+                "query": f"service:{service} @duration:>{threshold_ns}",
+                "from": from_str,
+                "to": to_str,
+            },
             [{"aggregation": "pc99", "metric": "@duration"}],
         )
 
@@ -52,14 +56,16 @@ def investigate_latency(service, from_time, to_time, threshold, fmt):
         )
 
         # Step 3: Check error logs
-        logs_response = client.logs.list_logs(body={
-            "filter": {
-                "query": f"service:{service} status:error",
-                "from": from_str,
-                "to": to_str,
-            },
-            "page": {"limit": 100},
-        })
+        logs_response = client.logs.list_logs(
+            body={
+                "filter": {
+                    "query": f"service:{service} status:error",
+                    "from": from_str,
+                    "to": to_str,
+                },
+                "page": {"limit": 100},
+            }
+        )
 
     # Extract results
     p99_buckets = p99_response.data.buckets if p99_response.data else []
@@ -70,10 +76,12 @@ def investigate_latency(service, from_time, to_time, threshold, fmt):
     slow_endpoints = []
     for bucket in endpoint_buckets:
         value_ns = bucket.computes["c0"]
-        slow_endpoints.append({
-            "resource_name": bucket.by.get("resource_name", "N/A"),
-            "p99_ms": round(value_ns / 1_000_000, 2),
-        })
+        slow_endpoints.append(
+            {
+                "resource_name": bucket.by.get("resource_name", "N/A"),
+                "p99_ms": round(value_ns / 1_000_000, 2),
+            }
+        )
 
     error_logs = logs_response.data if logs_response.data else []
     error_count = len(error_logs)
@@ -139,14 +147,16 @@ def investigate_errors(service, from_time, to_time, fmt):
         )
 
         # Step 3: Search error logs
-        logs_response = client.logs.list_logs(body={
-            "filter": {
-                "query": f"service:{service} status:error",
-                "from": from_str,
-                "to": to_str,
-            },
-            "page": {"limit": 100},
-        })
+        logs_response = client.logs.list_logs(
+            body={
+                "filter": {
+                    "query": f"service:{service} status:error",
+                    "from": from_str,
+                    "to": to_str,
+                },
+                "page": {"limit": 100},
+            }
+        )
 
     # Extract results
     count_buckets = error_count_response.data.buckets if error_count_response.data else []
@@ -155,10 +165,12 @@ def investigate_errors(service, from_time, to_time, fmt):
     endpoint_buckets = by_endpoint_response.data.buckets if by_endpoint_response.data else []
     by_endpoint = []
     for bucket in endpoint_buckets:
-        by_endpoint.append({
-            "resource_name": bucket.by.get("resource_name", "N/A"),
-            "count": bucket.computes["c0"],
-        })
+        by_endpoint.append(
+            {
+                "resource_name": bucket.by.get("resource_name", "N/A"),
+                "count": bucket.computes["c0"],
+            }
+        )
 
     error_logs = logs_response.data if logs_response.data else []
     recent_logs = [log.attributes.message for log in error_logs]
@@ -235,10 +247,12 @@ def investigate_throughput(service, from_time, to_time, fmt):
     endpoint_buckets = by_endpoint_response.data.buckets if by_endpoint_response.data else []
     by_endpoint = []
     for bucket in endpoint_buckets:
-        by_endpoint.append({
-            "resource_name": bucket.by.get("resource_name", "N/A"),
-            "count": bucket.computes["c0"],
-        })
+        by_endpoint.append(
+            {
+                "resource_name": bucket.by.get("resource_name", "N/A"),
+                "count": bucket.computes["c0"],
+            }
+        )
 
     if fmt == "json":
         output = {
@@ -317,7 +331,9 @@ def investigate_compare(service, from_time, baseline, fmt):
         )
 
     # Extract current metrics
-    current_count_buckets = current_count_response.data.buckets if current_count_response.data else []
+    current_count_buckets = (
+        current_count_response.data.buckets if current_count_response.data else []
+    )
     current_count = current_count_buckets[0].computes["c0"] if current_count_buckets else 0
 
     current_p99_buckets = current_p99_response.data.buckets if current_p99_response.data else []
@@ -325,7 +341,9 @@ def investigate_compare(service, from_time, baseline, fmt):
     current_p99_ms = current_p99_ns / 1_000_000
 
     # Extract baseline metrics
-    baseline_count_buckets = baseline_count_response.data.buckets if baseline_count_response.data else []
+    baseline_count_buckets = (
+        baseline_count_response.data.buckets if baseline_count_response.data else []
+    )
     baseline_count = baseline_count_buckets[0].computes["c0"] if baseline_count_buckets else 0
 
     baseline_p99_buckets = baseline_p99_response.data.buckets if baseline_p99_response.data else []

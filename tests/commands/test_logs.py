@@ -1,13 +1,12 @@
 """Tests for Logs commands."""
 
 import json
-import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import Mock, patch
 from tests.conftest import create_mock_log
 
-
 # Search command tests
+
 
 def test_logs_search_basic_query(mock_client, runner):
     """Test basic log search returns correct count."""
@@ -21,8 +20,8 @@ def test_logs_search_basic_query(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--format', 'json'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
@@ -40,8 +39,8 @@ def test_logs_search_table_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*"])
 
         assert result.exit_code == 0
         assert "Time" in result.output
@@ -63,16 +62,16 @@ def test_logs_search_json_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--format', 'json'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
-        assert output[0]['message'] == "Test message"
-        assert output[0]['service'] == "my-service"
-        assert output[0]['status'] == "info"
-        assert 'timestamp' in output[0]
+        assert output[0]["message"] == "Test message"
+        assert output[0]["service"] == "my-service"
+        assert output[0]["status"] == "info"
+        assert "timestamp" in output[0]
 
 
 def test_logs_search_with_time_range(mock_client, runner):
@@ -82,8 +81,8 @@ def test_logs_search_with_time_range(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--from', '24h'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--from", "24h"])
 
         assert result.exit_code == 0
         mock_client.logs.list_logs.assert_called_once()
@@ -96,13 +95,13 @@ def test_logs_search_with_service_filter(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--service', 'web-api'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--service", "web-api"])
 
         assert result.exit_code == 0
         call_kwargs = mock_client.logs.list_logs.call_args.kwargs
-        body = call_kwargs['body']
-        assert 'service:web-api' in body['filter']['query']
+        body = call_kwargs["body"]
+        assert "service:web-api" in body["filter"]["query"]
 
 
 def test_logs_search_with_status_filter(mock_client, runner):
@@ -112,13 +111,13 @@ def test_logs_search_with_status_filter(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--status', 'error'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--status", "error"])
 
         assert result.exit_code == 0
         call_kwargs = mock_client.logs.list_logs.call_args.kwargs
-        body = call_kwargs['body']
-        assert 'status:error' in body['filter']['query']
+        body = call_kwargs["body"]
+        assert "status:error" in body["filter"]["query"]
 
 
 def test_logs_search_empty_results(mock_client, runner):
@@ -128,8 +127,8 @@ def test_logs_search_empty_results(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', 'nonexistent'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "nonexistent"])
 
         assert result.exit_code == 0
         assert "Total logs: 0" in result.output
@@ -142,16 +141,17 @@ def test_logs_search_with_limit(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['search', '*', '--limit', '10'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--limit", "10"])
 
         assert result.exit_code == 0
         call_kwargs = mock_client.logs.list_logs.call_args.kwargs
-        body = call_kwargs['body']
-        assert body['page']['limit'] == 10
+        body = call_kwargs["body"]
+        assert body["page"]["limit"] == 10
 
 
 # Tail command tests
+
 
 def test_logs_tail_basic(mock_client, runner):
     """Test tail returns recent logs."""
@@ -164,13 +164,13 @@ def test_logs_tail_basic(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['tail', '*', '--format', 'json'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
-        assert output[0]['message'] == "Recent log entry"
+        assert output[0]["message"] == "Recent log entry"
 
 
 def test_logs_tail_with_lines(mock_client, runner):
@@ -180,13 +180,13 @@ def test_logs_tail_with_lines(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['tail', '*', '--lines', '25'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*", "--lines", "25"])
 
         assert result.exit_code == 0
         call_kwargs = mock_client.logs.list_logs.call_args.kwargs
-        body = call_kwargs['body']
-        assert body['page']['limit'] == 25
+        body = call_kwargs["body"]
+        assert body["page"]["limit"] == 25
 
 
 def test_logs_tail_with_service_filter(mock_client, runner):
@@ -196,13 +196,13 @@ def test_logs_tail_with_service_filter(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['tail', '*', '--service', 'web-api'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*", "--service", "web-api"])
 
         assert result.exit_code == 0
         call_kwargs = mock_client.logs.list_logs.call_args.kwargs
-        body = call_kwargs['body']
-        assert 'service:web-api' in body['filter']['query']
+        body = call_kwargs["body"]
+        assert "service:web-api" in body["filter"]["query"]
 
 
 def test_logs_tail_color_coded(mock_client, runner):
@@ -218,8 +218,8 @@ def test_logs_tail_color_coded(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['tail', '*'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*"])
 
         assert result.exit_code == 0
         assert "Error occurred" in result.output
@@ -234,14 +234,15 @@ def test_logs_tail_empty(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['tail', '*'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*"])
 
         assert result.exit_code == 0
         assert "No logs found" in result.output
 
 
 # Query command tests
+
 
 def test_logs_query_count_by_service(mock_client, runner):
     """Test log query with count aggregation grouped by service."""
@@ -259,22 +260,29 @@ def test_logs_query_count_by_service(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, [
-            'query',
-            '--query', '*',
-            '--metric', 'count',
-            '--group-by', 'service',
-            '--format', 'json'
-        ])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(
+            logs,
+            [
+                "query",
+                "--query",
+                "*",
+                "--metric",
+                "count",
+                "--group-by",
+                "service",
+                "--format",
+                "json",
+            ],
+        )
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 2
-        assert output[0]['service'] == "web-api"
-        assert output[0]['count'] == 1500
-        assert output[1]['service'] == "worker"
-        assert output[1]['count'] == 800
+        assert output[0]["service"] == "web-api"
+        assert output[0]["count"] == 1500
+        assert output[1]["service"] == "worker"
+        assert output[1]["count"] == 800
 
 
 def test_logs_query_count_by_status(mock_client, runner):
@@ -293,20 +301,27 @@ def test_logs_query_count_by_status(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, [
-            'query',
-            '--query', '*',
-            '--metric', 'count',
-            '--group-by', 'status',
-            '--format', 'json'
-        ])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(
+            logs,
+            [
+                "query",
+                "--query",
+                "*",
+                "--metric",
+                "count",
+                "--group-by",
+                "status",
+                "--format",
+                "json",
+            ],
+        )
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 2
-        assert output[0]['status'] == "error"
-        assert output[0]['count'] == 250
+        assert output[0]["status"] == "error"
+        assert output[0]["count"] == 250
 
 
 def test_logs_query_json_format(mock_client, runner):
@@ -322,13 +337,10 @@ def test_logs_query_json_format(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, [
-            'query',
-            '--metric', 'count',
-            '--group-by', 'service',
-            '--format', 'json'
-        ])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(
+            logs, ["query", "--metric", "count", "--group-by", "service", "--format", "json"]
+        )
 
         assert result.exit_code == 0
         output = json.loads(result.output)
@@ -352,12 +364,8 @@ def test_logs_query_table_format(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, [
-            'query',
-            '--metric', 'count',
-            '--group-by', 'service'
-        ])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["query", "--metric", "count", "--group-by", "service"])
 
         assert result.exit_code == 0
         assert "Log Analytics" in result.output
@@ -381,17 +389,13 @@ def test_logs_query_without_groupby(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=mock_buckets))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, [
-            'query',
-            '--metric', 'count',
-            '--format', 'json'
-        ])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["query", "--metric", "count", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
-        assert output[0]['count'] == 9876
+        assert output[0]["count"] == 9876
 
 
 def test_logs_query_empty_results(mock_client, runner):
@@ -401,14 +405,15 @@ def test_logs_query_empty_results(mock_client, runner):
     mock_response = Mock(data=Mock(buckets=[]))
     mock_client.logs.aggregate_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['query', '--metric', 'count'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["query", "--metric", "count"])
 
         assert result.exit_code == 0
         assert "Total groups: 0" in result.output
 
 
 # Trace command tests
+
 
 def test_logs_trace_basic(mock_client, runner):
     """Test finding logs for a trace ID."""
@@ -422,8 +427,8 @@ def test_logs_trace_basic(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['trace', 'abc123', '--format', 'json'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["trace", "abc123", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
@@ -441,14 +446,14 @@ def test_logs_trace_json_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['trace', 'trace-xyz', '--format', 'json'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["trace", "trace-xyz", "--format", "json"])
 
         assert result.exit_code == 0
         output = json.loads(result.output)
         assert len(output) == 1
-        assert output[0]['message'] == "Trace log"
-        assert output[0]['service'] == "web-api"
+        assert output[0]["message"] == "Trace log"
+        assert output[0]["service"] == "web-api"
 
 
 def test_logs_trace_table_format(mock_client, runner):
@@ -462,8 +467,8 @@ def test_logs_trace_table_format(mock_client, runner):
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['trace', 'trace-456'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["trace", "trace-456"])
 
         assert result.exit_code == 0
         assert "trace-456" in result.output
@@ -477,8 +482,8 @@ def test_logs_trace_not_found(mock_client, runner):
     mock_response = Mock(data=[], meta=Mock(page=Mock(after=None)))
     mock_client.logs.list_logs.return_value = mock_response
 
-    with patch('ddg.commands.logs.get_datadog_client', return_value=mock_client):
-        result = runner.invoke(logs, ['trace', 'nonexistent-trace'])
+    with patch("ddg.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["trace", "nonexistent-trace"])
 
         assert result.exit_code == 0
         assert "No logs found" in result.output

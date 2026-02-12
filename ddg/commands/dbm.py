@@ -2,7 +2,6 @@
 
 import click
 import json
-from datetime import datetime
 from rich.console import Console
 from rich.table import Table
 from ddg.client import get_datadog_client
@@ -38,13 +37,15 @@ def list_hosts(env, format):
     if format == "json":
         output = []
         for h in hosts:
-            output.append({
-                "host": h.host,
-                "engine": h.engine,
-                "version": h.version,
-                "connections": h.connections,
-                "status": h.status,
-            })
+            output.append(
+                {
+                    "host": h.host,
+                    "engine": h.engine,
+                    "version": h.version,
+                    "connections": h.connections,
+                    "status": h.status,
+                }
+            )
         print(json.dumps(output, indent=2))
     else:
         table = Table(title="Database Hosts")
@@ -72,7 +73,9 @@ def list_hosts(env, format):
 @click.option("--to", "to_time", default="now", help="End time")
 @click.option("--service", default=None, help="Filter by service")
 @click.option("--database", default=None, help="Filter by database")
-@click.option("--sort-by", "sort_by", default="avg_latency", help="Sort by field (avg_latency, calls)")
+@click.option(
+    "--sort-by", "sort_by", default="avg_latency", help="Sort by field (avg_latency, calls)"
+)
 @click.option("--limit", default=20, type=int, help="Max queries to return")
 @click.option("--format", type=click.Choice(["json", "table"]), default="table")
 @handle_api_error
@@ -103,15 +106,17 @@ def list_queries(from_time, to_time, service, database, sort_by, limit, format):
         for q in queries:
             avg_latency_ms = round(q.avg_latency / 1_000_000, 2)
             total_time_ms = round(q.total_time / 1_000_000, 2)
-            output.append({
-                "query_id": q.query_id,
-                "normalized_query": q.normalized_query,
-                "avg_latency_ms": avg_latency_ms,
-                "calls": q.calls,
-                "total_time_ms": total_time_ms,
-                "service": q.service,
-                "database": q.database,
-            })
+            output.append(
+                {
+                    "query_id": q.query_id,
+                    "normalized_query": q.normalized_query,
+                    "avg_latency_ms": avg_latency_ms,
+                    "calls": q.calls,
+                    "total_time_ms": total_time_ms,
+                    "service": q.service,
+                    "database": q.database,
+                }
+            )
         print(json.dumps(output, indent=2))
     else:
         table = Table(title="Database Queries")
@@ -211,12 +216,14 @@ def list_samples(query_id, from_time, to_time, limit, format):
         output = []
         for s in samples:
             duration_ms = round(s.duration / 1_000_000, 2)
-            output.append({
-                "timestamp": str(s.timestamp),
-                "duration_ms": duration_ms,
-                "rows_affected": s.rows_affected,
-                "parameters": s.parameters,
-            })
+            output.append(
+                {
+                    "timestamp": str(s.timestamp),
+                    "duration_ms": duration_ms,
+                    "rows_affected": s.rows_affected,
+                    "parameters": s.parameters,
+                }
+            )
         print(json.dumps(output, indent=2))
     else:
         table = Table(title=f"Query Samples for {query_id}")
