@@ -14,22 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: uv sync --all-extras
 
       - name: Check formatting
-        run: black --check ddogctl/ tests/
+        run: uv run black --check ddogctl/ tests/
 
       - name: Lint
-        run: ruff check ddogctl/ tests/
+        run: uv run ruff check ddogctl/ tests/
 
       - name: Test
-        run: pytest tests/ -v --cov=ddogctl --cov-report=xml
+        run: uv run pytest tests/ -v --cov=ddogctl --cov-report=xml
 
   publish:
     runs-on: ubuntu-latest
@@ -40,16 +41,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
 
-      - name: Install build tools
-        run: pip install build
-
       - name: Build package
-        run: python -m build
+        run: uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
