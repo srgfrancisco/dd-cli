@@ -80,6 +80,16 @@ def test_watch_loop_multiple_iterations():
     assert render_func.call_count == 3
 
 
+def test_watch_loop_clamps_minimum_interval():
+    """Test that watch_loop clamps interval to minimum 1 second."""
+    render_func = Mock(return_value="test output")
+
+    with patch("ddogctl.utils.watch.time.sleep", side_effect=KeyboardInterrupt) as mock_sleep:
+        watch_loop(render_func, interval=0)
+
+    mock_sleep.assert_called_once_with(1)
+
+
 def test_watch_loop_accepts_custom_console():
     """Test that watch_loop accepts a custom console."""
     render_func = Mock(return_value="test output")

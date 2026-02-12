@@ -164,19 +164,29 @@ def tail_logs(query, lines, service, follow, format):
 
     if follow:
         seen_ids = set()
+        MAX_SEEN_IDS = 10000
         try:
             while True:
-                log_entries = fetch_logs()
+                try:
+                    log_entries = fetch_logs()
+                except Exception as err:
+                    console.print(f"[red]Error fetching logs: {err}[/red]")
+                    time.sleep(5)
+                    continue
 
                 # Filter to only new logs
                 new_logs = [log for log in log_entries if log.id not in seen_ids]
                 for log in log_entries:
                     seen_ids.add(log.id)
 
+                # Prevent unbounded memory growth
+                if len(seen_ids) > MAX_SEEN_IDS:
+                    seen_ids = set(list(seen_ids)[-MAX_SEEN_IDS // 2 :])
+
                 if new_logs:
                     if format == "json":
-                        output = [_format_log_entry(log) for log in new_logs]
-                        print(json.dumps(output, indent=2))
+                        for log in new_logs:
+                            print(json.dumps(_format_log_entry(log)))
                     else:
                         for log in new_logs:
                             attrs = log.attributes
@@ -184,13 +194,16 @@ def tail_logs(query, lines, service, follow, format):
                             if hasattr(attrs.timestamp, "strftime"):
                                 time_str = attrs.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
-                            status = attrs.status
+                            status = str(attrs.status)
                             color = STATUS_COLORS.get(status, "white")
+                            # Escape Rich markup in untrusted content
+                            safe_service = str(attrs.service).replace("[", "\\[")
+                            safe_message = str(attrs.message).replace("[", "\\[")
                             console.print(
                                 f"[dim]{time_str}[/dim] "
                                 f"[{color}]{status}[/{color}] "
-                                f"[cyan]{attrs.service}[/cyan] "
-                                f"{attrs.message}"
+                                f"[cyan]{safe_service}[/cyan] "
+                                f"{safe_message}"
                             )
 
                 time.sleep(5)

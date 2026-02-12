@@ -14,9 +14,12 @@ def watch_loop(render_func, interval=30, console=None):
 
     Args:
         render_func: Callable that returns a Rich renderable (Table, Panel, etc.)
-        interval: Refresh interval in seconds (default: 30)
+        interval: Refresh interval in seconds (default: 30, minimum: 1)
         console: Optional Rich Console instance (default: creates new one)
     """
+    if interval < 1:
+        interval = 1
+
     if console is None:
         console = Console()
 
