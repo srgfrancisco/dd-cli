@@ -66,6 +66,12 @@ Tests use `unittest.mock` with Click's `CliRunner`. Key fixtures from `tests/con
 
 Standard test pattern: patch `get_datadog_client` to return `mock_client`, invoke command via `runner`, assert on output and exit code.
 
+## Development Workflow
+
+- **Worktrees**: Always create a Git worktree for every new feature, fix, or change. Use the `./.worktrees` folder. Use `git gtr` instead of plain `git worktree` commands.
+- **Pull requests**: Every change lands via PR — no direct commits to `main`. Open a PR from the worktree branch, get it reviewed, then merge.
+- **Commits**: Follow conventional commit format.
+
 ## Development Methodology
 
 Strict TDD (RED-GREEN-REFACTOR). Coverage target >90%. Reference implementation: `ddogctl/commands/apm.py`.
