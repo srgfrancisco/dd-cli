@@ -10,7 +10,7 @@ ddogctl is a modern CLI for the Datadog API. Like Dogshell, but better. Rich ter
 
 ```bash
 # Setup
-uv sync --all-extras
+uv sync --all-extras                          # --all-extras required for dev tools
 
 # Run tests
 uv run pytest tests/ -v
