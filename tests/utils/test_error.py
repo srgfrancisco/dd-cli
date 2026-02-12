@@ -1,9 +1,21 @@
 """Tests for error handling utilities."""
 
+import json
+from io import StringIO
+
 import pytest
 from unittest.mock import patch
 from datadog_api_client.exceptions import ApiException
 from ddogctl.utils.error import handle_api_error
+from ddogctl.utils.output import set_output_format
+
+
+@pytest.fixture(autouse=True)
+def reset_output_format():
+    """Reset output format to table after each test."""
+    set_output_format("table")
+    yield
+    set_output_format("table")
 
 
 class TestHandleApiError:
@@ -11,8 +23,14 @@ class TestHandleApiError:
 
     @pytest.fixture
     def mock_console(self):
-        """Mock rich Console for capturing output."""
+        """Mock rich Console for capturing retry output."""
         with patch("ddogctl.utils.error.console") as mock:
+            yield mock
+
+    @pytest.fixture
+    def mock_emit_error(self):
+        """Mock emit_error for capturing structured error calls."""
+        with patch("ddogctl.utils.error.emit_error") as mock:
             yield mock
 
     @pytest.fixture
@@ -21,7 +39,7 @@ class TestHandleApiError:
         with patch("ddogctl.utils.error.time.sleep") as mock:
             yield mock
 
-    def test_successful_call_no_error(self, mock_console):
+    def test_successful_call_no_error(self, mock_emit_error):
         """Test that successful function calls work normally."""
 
         @handle_api_error
@@ -30,10 +48,9 @@ class TestHandleApiError:
 
         result = successful_func()
         assert result == "success"
-        # Console should not be called for successful operations
-        mock_console.print.assert_not_called()
+        mock_emit_error.assert_not_called()
 
-    def test_successful_call_with_args_and_kwargs(self, mock_console):
+    def test_successful_call_with_args_and_kwargs(self, mock_emit_error):
         """Test that decorator preserves function arguments."""
 
         @handle_api_error
@@ -42,10 +59,10 @@ class TestHandleApiError:
 
         result = func_with_args("x", "y", c="z")
         assert result == "x-y-z"
-        mock_console.print.assert_not_called()
+        mock_emit_error.assert_not_called()
 
-    def test_401_authentication_error(self, mock_console):
-        """Test that 401 errors trigger authentication message and exit."""
+    def test_401_authentication_error(self, mock_emit_error):
+        """Test that 401 errors trigger AUTH_FAILED emit_error and exit."""
 
         @handle_api_error
         def auth_error_func():
@@ -55,13 +72,15 @@ class TestHandleApiError:
             auth_error_func()
 
         assert exc_info.value.code == 1
-        mock_console.print.assert_called_once()
-        call_arg = mock_console.print.call_args[0][0]
-        assert "Authentication failed" in call_arg
-        assert "DD_API_KEY" in call_arg or "DD_APP_KEY" in call_arg
+        mock_emit_error.assert_called_once_with(
+            "AUTH_FAILED",
+            401,
+            "Authentication failed",
+            "Check DD_API_KEY and DD_APP_KEY or run ddogctl config init",
+        )
 
-    def test_403_permission_error(self, mock_console):
-        """Test that 403 errors trigger permission message and exit."""
+    def test_403_permission_error(self, mock_emit_error):
+        """Test that 403 errors trigger PERMISSION_DENIED emit_error and exit."""
 
         @handle_api_error
         def permission_error_func():
@@ -71,11 +90,33 @@ class TestHandleApiError:
             permission_error_func()
 
         assert exc_info.value.code == 1
-        mock_console.print.assert_called_once()
-        call_arg = mock_console.print.call_args[0][0]
-        assert "Permission denied" in call_arg
+        mock_emit_error.assert_called_once_with(
+            "PERMISSION_DENIED",
+            403,
+            "Permission denied",
+            "Check API key permissions",
+        )
 
-    def test_429_rate_limit_with_retry(self, mock_console, mock_sleep):
+    def test_404_not_found_error(self, mock_emit_error, mock_sleep):
+        """Test that 404 errors trigger NOT_FOUND emit_error and exit."""
+
+        @handle_api_error
+        def not_found_func():
+            raise ApiException(status=404, reason="Not Found")
+
+        with pytest.raises(SystemExit) as exc_info:
+            not_found_func()
+
+        assert exc_info.value.code == 1
+        mock_sleep.assert_not_called()
+        mock_emit_error.assert_called_once()
+        call_args = mock_emit_error.call_args
+        assert call_args[0][0] == "NOT_FOUND"
+        assert call_args[0][1] == 404
+        assert "not found" in call_args[0][2].lower()
+        assert call_args[0][3] == "Verify the resource ID"
+
+    def test_429_rate_limit_with_retry(self, mock_console, mock_emit_error, mock_sleep):
         """Test that 429 errors trigger retry with exponential backoff."""
         call_count = 0
 
@@ -100,13 +141,16 @@ class TestHandleApiError:
         sleep_calls = [c[0][0] for c in mock_sleep.call_args_list]
         assert sleep_calls == [1.0, 2.0]
 
-        # Should have printed rate limit warnings
+        # Retry messages go through console.print (not emit_error)
         assert mock_console.print.call_count >= 2
         print_calls = [c[0][0] for c in mock_console.print.call_args_list]
         rate_limit_warnings = [c for c in print_calls if "Rate limited" in c]
         assert len(rate_limit_warnings) == 2
 
-    def test_429_rate_limit_max_retries_exceeded(self, mock_console, mock_sleep):
+        # emit_error should NOT be called (all retries succeeded)
+        mock_emit_error.assert_not_called()
+
+    def test_429_rate_limit_max_retries_exceeded(self, mock_emit_error, mock_sleep):
         """Test that 429 errors exit after max retries."""
 
         @handle_api_error
@@ -119,14 +163,17 @@ class TestHandleApiError:
         assert exc_info.value.code == 1
 
         # Should have attempted 3 times (initial + 2 retries)
-        # and slept 2 times (before 2nd and 3rd attempts)
         assert mock_sleep.call_count == 2
 
-        # Final error message should indicate max retries exceeded
-        final_call = mock_console.print.call_args_list[-1][0][0]
-        assert "Maximum retries exceeded" in final_call or "Rate limited" in final_call
+        # Final error should go through emit_error
+        mock_emit_error.assert_called_once_with(
+            "RATE_LIMITED",
+            429,
+            "Rate limited after retries",
+            "Try again later or reduce request frequency",
+        )
 
-    def test_500_server_error_with_retry(self, mock_console, mock_sleep):
+    def test_500_server_error_with_retry(self, mock_console, mock_emit_error, mock_sleep):
         """Test that 5xx errors trigger retry."""
         call_count = 0
 
@@ -147,12 +194,15 @@ class TestHandleApiError:
         # Should have slept once (before 2nd attempt)
         mock_sleep.assert_called_once_with(1.0)
 
-        # Should have printed server error warning
+        # Retry messages go through console.print
         print_calls = [c[0][0] for c in mock_console.print.call_args_list]
         server_error_warnings = [c for c in print_calls if "Server error" in c]
         assert len(server_error_warnings) >= 1
 
-    def test_503_service_unavailable_retry(self, mock_console, mock_sleep):
+        # emit_error should NOT be called (retry succeeded)
+        mock_emit_error.assert_not_called()
+
+    def test_503_service_unavailable_retry(self, mock_emit_error, mock_sleep):
         """Test that 503 errors (5xx) trigger retry."""
         call_count = 0
 
@@ -167,8 +217,9 @@ class TestHandleApiError:
         result = service_unavailable_func()
         assert result == "success"
         assert call_count == 2
+        mock_emit_error.assert_not_called()
 
-    def test_server_error_max_retries_exceeded(self, mock_console, mock_sleep):
+    def test_server_error_max_retries_exceeded(self, mock_emit_error, mock_sleep):
         """Test that server errors exit after max retries."""
 
         @handle_api_error
@@ -181,14 +232,17 @@ class TestHandleApiError:
         assert exc_info.value.code == 1
 
         # Should have retried 3 times total
-        # Should have slept 2 times (before 2nd and 3rd attempts)
         assert mock_sleep.call_count == 2
 
-        # Final error should mention server error
-        final_call = mock_console.print.call_args_list[-1][0][0]
-        assert "Server error" in final_call
+        # Final error through emit_error
+        mock_emit_error.assert_called_once()
+        call_args = mock_emit_error.call_args
+        assert call_args[0][0] == "SERVER_ERROR"
+        assert call_args[0][1] == 500
+        assert "Server error" in call_args[0][2]
+        assert call_args[0][3] == "Datadog service issue, try again later"
 
-    def test_400_client_error_no_retry(self, mock_console, mock_sleep):
+    def test_400_client_error_no_retry(self, mock_emit_error, mock_sleep):
         """Test that 4xx errors (except 429) don't retry."""
 
         @handle_api_error
@@ -203,28 +257,13 @@ class TestHandleApiError:
         # Should NOT retry
         mock_sleep.assert_not_called()
 
-        # Should print API error
-        mock_console.print.assert_called_once()
-        call_arg = mock_console.print.call_args[0][0]
-        assert "API Error (400)" in call_arg
+        # Should emit API_ERROR
+        mock_emit_error.assert_called_once()
+        call_args = mock_emit_error.call_args
+        assert call_args[0][0] == "API_ERROR"
+        assert call_args[0][1] == 400
 
-    def test_404_not_found_no_retry(self, mock_console, mock_sleep):
-        """Test that 404 errors don't retry."""
-
-        @handle_api_error
-        def not_found_func():
-            raise ApiException(status=404, reason="Not Found")
-
-        with pytest.raises(SystemExit) as exc_info:
-            not_found_func()
-
-        assert exc_info.value.code == 1
-        mock_sleep.assert_not_called()
-
-        call_arg = mock_console.print.call_args[0][0]
-        assert "API Error (404)" in call_arg
-
-    def test_generic_exception_handling(self, mock_console):
+    def test_generic_exception_handling(self, mock_emit_error):
         """Test that non-ApiException errors are caught and logged."""
 
         @handle_api_error
@@ -236,10 +275,11 @@ class TestHandleApiError:
 
         assert exc_info.value.code == 1
 
-        mock_console.print.assert_called_once()
-        call_arg = mock_console.print.call_args[0][0]
-        assert "Unexpected error" in call_arg
-        assert "Something went wrong" in call_arg
+        mock_emit_error.assert_called_once()
+        call_args = mock_emit_error.call_args
+        assert call_args[0][0] == "UNEXPECTED_ERROR"
+        assert call_args[0][1] == 0
+        assert "Something went wrong" in call_args[0][2]
 
     def test_preserves_function_metadata(self):
         """Test that decorator preserves function name and docstring."""
@@ -252,7 +292,7 @@ class TestHandleApiError:
         assert documented_func.__name__ == "documented_func"
         assert documented_func.__doc__ == "This is a test function."
 
-    def test_different_api_exception_messages(self, mock_console):
+    def test_different_api_exception_messages(self, mock_emit_error):
         """Test that exception messages are included in error output."""
 
         @handle_api_error
@@ -265,11 +305,10 @@ class TestHandleApiError:
         with pytest.raises(SystemExit):
             custom_error_func()
 
-        # Error message should be in the output
-        call_arg = mock_console.print.call_args[0][0]
-        assert "400" in call_arg
+        call_args = mock_emit_error.call_args
+        assert call_args[0][1] == 400
 
-    def test_multiple_function_applications(self, mock_console):
+    def test_multiple_function_applications(self, mock_emit_error):
         """Test that decorator can be applied to multiple functions."""
 
         @handle_api_error
@@ -283,10 +322,9 @@ class TestHandleApiError:
         assert func1() == "func1"
         assert func2() == "func2"
 
-        # No errors should be printed
-        mock_console.print.assert_not_called()
+        mock_emit_error.assert_not_called()
 
-    def test_nested_decorator_application(self, mock_console):
+    def test_nested_decorator_application(self, mock_emit_error):
         """Test behavior when decorator is used with other decorators."""
 
         def other_decorator(func):
@@ -331,7 +369,7 @@ class TestHandleApiError:
         # Second retry message should show (2/3)
         assert "(2/3)" in retry_messages[1]
 
-    def test_exception_with_no_status_attribute(self, mock_console):
+    def test_exception_with_no_status_attribute(self, mock_emit_error):
         """Test handling of exceptions that don't have a status attribute."""
 
         # Create a custom exception without status
@@ -347,6 +385,123 @@ class TestHandleApiError:
 
         assert exc_info.value.code == 1
 
-        # Should be caught as unexpected error
-        call_arg = mock_console.print.call_args[0][0]
-        assert "Unexpected error" in call_arg
+        # Should be caught as unexpected error via emit_error
+        mock_emit_error.assert_called_once()
+        call_args = mock_emit_error.call_args
+        assert call_args[0][0] == "UNEXPECTED_ERROR"
+
+
+class TestHandleApiErrorJsonMode:
+    """Test that handle_api_error produces structured JSON in JSON mode."""
+
+    @pytest.fixture
+    def mock_sleep(self):
+        """Mock time.sleep to avoid delays in tests."""
+        with patch("ddogctl.utils.error.time.sleep") as mock:
+            yield mock
+
+    def test_401_json_output(self):
+        """Test 401 error produces JSON on stderr in JSON mode."""
+        set_output_format("json")
+
+        @handle_api_error
+        def auth_error():
+            raise ApiException(status=401, reason="Unauthorized")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                auth_error()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["error"] is True
+        assert data["code"] == "AUTH_FAILED"
+        assert data["status"] == 401
+        assert data["hint"] == "Check DD_API_KEY and DD_APP_KEY or run ddogctl config init"
+
+    def test_403_json_output(self):
+        """Test 403 error produces JSON on stderr in JSON mode."""
+        set_output_format("json")
+
+        @handle_api_error
+        def perm_error():
+            raise ApiException(status=403, reason="Forbidden")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                perm_error()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["code"] == "PERMISSION_DENIED"
+        assert data["status"] == 403
+
+    def test_404_json_output(self):
+        """Test 404 error produces JSON on stderr in JSON mode."""
+        set_output_format("json")
+
+        @handle_api_error
+        def not_found_error():
+            raise ApiException(status=404, reason="Not Found")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                not_found_error()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["code"] == "NOT_FOUND"
+        assert data["status"] == 404
+        assert data["hint"] == "Verify the resource ID"
+
+    def test_429_exhausted_json_output(self, mock_sleep):
+        """Test 429 after max retries produces JSON on stderr."""
+        set_output_format("json")
+
+        @handle_api_error
+        def rate_limited():
+            raise ApiException(status=429, reason="Rate Limited")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                rate_limited()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["code"] == "RATE_LIMITED"
+        assert data["status"] == 429
+
+    def test_500_exhausted_json_output(self, mock_sleep):
+        """Test 500 after max retries produces JSON on stderr."""
+        set_output_format("json")
+
+        @handle_api_error
+        def server_error():
+            raise ApiException(status=500, reason="Internal Server Error")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                server_error()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["code"] == "SERVER_ERROR"
+        assert data["status"] == 500
+
+    def test_unexpected_error_json_output(self):
+        """Test unexpected error produces JSON on stderr."""
+        set_output_format("json")
+
+        @handle_api_error
+        def unexpected():
+            raise RuntimeError("boom")
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as exc_info:
+                unexpected()
+
+        assert exc_info.value.code == 1
+        data = json.loads(mock_stderr.getvalue())
+        assert data["code"] == "UNEXPECTED_ERROR"
+        assert data["status"] == 0
+        assert "boom" in data["message"]

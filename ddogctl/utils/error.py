@@ -6,6 +6,8 @@ import sys
 import time
 from functools import wraps
 
+from ddogctl.utils.output import emit_error
+
 console = Console()
 
 
@@ -22,41 +24,65 @@ def handle_api_error(func):
                 return func(*args, **kwargs)
             except ApiException as e:
                 if e.status == 401:
-                    console.print(
-                        "[red]✗ Authentication failed. Check DD_API_KEY and DD_APP_KEY[/red]"
+                    emit_error(
+                        "AUTH_FAILED",
+                        401,
+                        "Authentication failed",
+                        "Check DD_API_KEY and DD_APP_KEY or run ddogctl config init",
                     )
                     sys.exit(1)
                 elif e.status == 403:
-                    console.print("[red]✗ Permission denied. Check API key permissions[/red]")
+                    emit_error(
+                        "PERMISSION_DENIED",
+                        403,
+                        "Permission denied",
+                        "Check API key permissions",
+                    )
+                    sys.exit(1)
+                elif e.status == 404:
+                    emit_error(
+                        "NOT_FOUND",
+                        404,
+                        f"Resource not found: {e}",
+                        "Verify the resource ID",
+                    )
                     sys.exit(1)
                 elif e.status == 429:
                     # Rate limited - retry with exponential backoff
                     if attempt < retries - 1:
                         wait_time = retry_delay * (2**attempt)
-                        console.print(
-                            f"[yellow]⚠ Rate limited. Retrying in {wait_time}s...[/yellow]"
-                        )
+                        console.print(f"[yellow]Rate limited. Retrying in {wait_time}s...[/yellow]")
                         time.sleep(wait_time)
                         continue
                     else:
-                        console.print("[red]✗ Rate limited. Maximum retries exceeded.[/red]")
+                        emit_error(
+                            "RATE_LIMITED",
+                            429,
+                            "Rate limited after retries",
+                            "Try again later or reduce request frequency",
+                        )
                         sys.exit(1)
                 elif e.status >= 500:
                     # Server error - retry
                     if attempt < retries - 1:
                         console.print(
-                            f"[yellow]⚠ Server error. Retrying ({attempt + 1}/{retries})...[/yellow]"
+                            f"[yellow]Server error. Retrying ({attempt + 1}/{retries})...[/yellow]"
                         )
                         time.sleep(retry_delay)
                         continue
                     else:
-                        console.print(f"[red]✗ Server error: {e}[/red]")
+                        emit_error(
+                            "SERVER_ERROR",
+                            e.status,
+                            f"Server error: {e}",
+                            "Datadog service issue, try again later",
+                        )
                         sys.exit(1)
                 else:
-                    console.print(f"[red]✗ API Error ({e.status}): {e}[/red]")
+                    emit_error("API_ERROR", e.status, f"API error: {e}")
                     sys.exit(1)
             except Exception as e:
-                console.print(f"[red]✗ Unexpected error: {e}[/red]")
+                emit_error("UNEXPECTED_ERROR", 0, f"Unexpected error: {e}")
                 sys.exit(1)
 
     return wrapper
