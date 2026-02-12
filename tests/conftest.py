@@ -36,6 +36,7 @@ def mock_client():
     client.users = Mock()
     client.usage = Mock()
     client.synthetics = Mock()
+    client.rum = Mock()
     return client
 
 
@@ -331,6 +332,37 @@ def create_mock_log(message, service, status, timestamp, attributes=None, trace_
             }
 
     return MockLog()
+
+
+# RUM factory functions
+
+
+def create_mock_rum_event(event_id, event_type, timestamp, attributes=None, tags=None):
+    """Factory for mock RUM event objects.
+
+    Args:
+        event_id: Event ID (string)
+        event_type: Event type (e.g., "view", "action", "error", "resource", "long_task")
+        timestamp: Event timestamp (datetime)
+        attributes: Dict of event attributes (default: {})
+        tags: List of tags (default: [])
+
+    Returns:
+        Mock RUM event object
+    """
+
+    class MockRUMEvent:
+        def __init__(self):
+            self.id = event_id
+            self.type = event_type
+            self.attributes = Mock(
+                type=event_type,
+                timestamp=timestamp,
+                attributes=attributes or {},
+                tags=tags or [],
+            )
+
+    return MockRUMEvent()
 
 
 # DBM factory functions

@@ -21,6 +21,7 @@ from datadog_api_client.v2.api import (
     service_definition_api,
     incidents_api,
     users_api,
+    rum_api,
 )
 from ddogctl.config import DatadogConfig
 
@@ -59,6 +60,7 @@ class DatadogClient:
         self.service_definitions = service_definition_api.ServiceDefinitionApi(self.api_client)
         self.incidents = incidents_api.IncidentsApi(self.api_client)
         self.users = users_api.UsersApi(self.api_client)
+        self.rum = rum_api.RUMApi(self.api_client)
 
     def __enter__(self):
         return self
