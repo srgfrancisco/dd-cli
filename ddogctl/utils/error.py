@@ -5,6 +5,15 @@ from rich.console import Console
 import sys
 import time
 from functools import wraps
+from ddogctl.utils.exit_codes import (
+    AUTH_ERROR,
+    GENERAL_ERROR,
+    NOT_FOUND,
+    RATE_LIMITED,
+    SERVER_ERROR,
+    VALIDATION_ERROR,
+    exit_code_for_status,
+)
 
 from ddogctl.utils.output import emit_error
 
@@ -30,7 +39,7 @@ def handle_api_error(func):
                         "Authentication failed",
                         "Check DD_API_KEY and DD_APP_KEY or run ddogctl config init",
                     )
-                    sys.exit(1)
+                    sys.exit(AUTH_ERROR)
                 elif e.status == 403:
                     emit_error(
                         "PERMISSION_DENIED",
@@ -38,7 +47,7 @@ def handle_api_error(func):
                         "Permission denied",
                         "Check API key permissions",
                     )
-                    sys.exit(1)
+                    sys.exit(AUTH_ERROR)
                 elif e.status == 404:
                     emit_error(
                         "NOT_FOUND",
@@ -46,7 +55,7 @@ def handle_api_error(func):
                         f"Resource not found: {e}",
                         "Verify the resource ID",
                     )
-                    sys.exit(1)
+                    sys.exit(NOT_FOUND)
                 elif e.status == 429:
                     # Rate limited - retry with exponential backoff
                     if attempt < retries - 1:
@@ -61,7 +70,7 @@ def handle_api_error(func):
                             "Rate limited after retries",
                             "Try again later or reduce request frequency",
                         )
-                        sys.exit(1)
+                        sys.exit(RATE_LIMITED)
                 elif e.status >= 500:
                     # Server error - retry
                     if attempt < retries - 1:
@@ -77,12 +86,19 @@ def handle_api_error(func):
                             f"Server error: {e}",
                             "Datadog service issue, try again later",
                         )
-                        sys.exit(1)
+                        sys.exit(SERVER_ERROR)
+                elif e.status in (400, 422):
+                    emit_error(
+                        "VALIDATION_ERROR",
+                        e.status,
+                        f"Validation error ({e.status}): {e}",
+                    )
+                    sys.exit(VALIDATION_ERROR)
                 else:
                     emit_error("API_ERROR", e.status, f"API error: {e}")
-                    sys.exit(1)
+                    sys.exit(exit_code_for_status(e.status))
             except Exception as e:
                 emit_error("UNEXPECTED_ERROR", 0, f"Unexpected error: {e}")
-                sys.exit(1)
+                sys.exit(GENERAL_ERROR)
 
     return wrapper

@@ -8,6 +8,14 @@ from unittest.mock import patch
 from datadog_api_client.exceptions import ApiException
 from ddogctl.utils.error import handle_api_error
 from ddogctl.utils.output import set_output_format
+from ddogctl.utils.exit_codes import (
+    AUTH_ERROR,
+    GENERAL_ERROR,
+    NOT_FOUND,
+    RATE_LIMITED,
+    SERVER_ERROR,
+    VALIDATION_ERROR,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -71,7 +79,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             auth_error_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == AUTH_ERROR
         mock_emit_error.assert_called_once_with(
             "AUTH_FAILED",
             401,
@@ -89,7 +97,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             permission_error_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == AUTH_ERROR
         mock_emit_error.assert_called_once_with(
             "PERMISSION_DENIED",
             403,
@@ -107,7 +115,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             not_found_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == NOT_FOUND
         mock_sleep.assert_not_called()
         mock_emit_error.assert_called_once()
         call_args = mock_emit_error.call_args
@@ -160,7 +168,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             always_rate_limited()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == RATE_LIMITED
 
         # Should have attempted 3 times (initial + 2 retries)
         assert mock_sleep.call_count == 2
@@ -229,7 +237,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             always_server_error()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == SERVER_ERROR
 
         # Should have retried 3 times total
         assert mock_sleep.call_count == 2
@@ -243,7 +251,7 @@ class TestHandleApiError:
         assert call_args[0][3] == "Datadog service issue, try again later"
 
     def test_400_client_error_no_retry(self, mock_emit_error, mock_sleep):
-        """Test that 4xx errors (except 429) don't retry."""
+        """Test that 400 errors are treated as validation errors without retry."""
 
         @handle_api_error
         def bad_request_func():
@@ -252,15 +260,15 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             bad_request_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == VALIDATION_ERROR
 
         # Should NOT retry
         mock_sleep.assert_not_called()
 
-        # Should emit API_ERROR
+        # Should emit VALIDATION_ERROR
         mock_emit_error.assert_called_once()
         call_args = mock_emit_error.call_args
-        assert call_args[0][0] == "API_ERROR"
+        assert call_args[0][0] == "VALIDATION_ERROR"
         assert call_args[0][1] == 400
 
     def test_generic_exception_handling(self, mock_emit_error):
@@ -273,7 +281,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             generic_error_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == GENERAL_ERROR
 
         mock_emit_error.assert_called_once()
         call_args = mock_emit_error.call_args
@@ -302,9 +310,10 @@ class TestHandleApiError:
                 reason="Bad Request",
             )
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit) as exc_info:
             custom_error_func()
 
+        assert exc_info.value.code == VALIDATION_ERROR
         call_args = mock_emit_error.call_args
         assert call_args[0][1] == 400
 
@@ -383,7 +392,7 @@ class TestHandleApiError:
         with pytest.raises(SystemExit) as exc_info:
             custom_exception_func()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == GENERAL_ERROR
 
         # Should be caught as unexpected error via emit_error
         mock_emit_error.assert_called_once()
@@ -412,7 +421,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 auth_error()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == AUTH_ERROR
         data = json.loads(mock_stderr.getvalue())
         assert data["error"] is True
         assert data["code"] == "AUTH_FAILED"
@@ -431,7 +440,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 perm_error()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == AUTH_ERROR
         data = json.loads(mock_stderr.getvalue())
         assert data["code"] == "PERMISSION_DENIED"
         assert data["status"] == 403
@@ -448,7 +457,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 not_found_error()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == NOT_FOUND
         data = json.loads(mock_stderr.getvalue())
         assert data["code"] == "NOT_FOUND"
         assert data["status"] == 404
@@ -466,7 +475,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 rate_limited()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == RATE_LIMITED
         data = json.loads(mock_stderr.getvalue())
         assert data["code"] == "RATE_LIMITED"
         assert data["status"] == 429
@@ -483,7 +492,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 server_error()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == SERVER_ERROR
         data = json.loads(mock_stderr.getvalue())
         assert data["code"] == "SERVER_ERROR"
         assert data["status"] == 500
@@ -500,7 +509,7 @@ class TestHandleApiErrorJsonMode:
             with pytest.raises(SystemExit) as exc_info:
                 unexpected()
 
-        assert exc_info.value.code == 1
+        assert exc_info.value.code == GENERAL_ERROR
         data = json.loads(mock_stderr.getvalue())
         assert data["code"] == "UNEXPECTED_ERROR"
         assert data["status"] == 0
