@@ -23,13 +23,13 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Check formatting
-        run: black --check ddg/ tests/
+        run: black --check ddogctl/ tests/
 
       - name: Lint
-        run: ruff check ddg/ tests/
+        run: ruff check ddogctl/ tests/
 
       - name: Test
-        run: pytest tests/ -v --cov=ddg --cov-report=xml
+        run: pytest tests/ -v --cov=ddogctl --cov-report=xml
 
   publish:
     runs-on: ubuntu-latest

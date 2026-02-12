@@ -90,10 +90,10 @@ rmdir scripts/
 
 ```bash
 git add -A
-git commit -m "refactor: rename dd to ddg for open-source release
+git commit -m "refactor: rename ddg to ddogctl
 
-Rename package from dd to ddg to avoid Unix dd conflict.
-CLI entry point: ddg. PyPI name: ddogctl."
+Rename package and CLI from ddg to ddogctl.
+CLI entry point: ddogctl. PyPI name: ddogctl."
 ```
 
 ---
@@ -121,7 +121,7 @@ Also update the description body to be generic (remove Kojo-specific text).
 
 **Step 2: Update CLAUDE.md**
 
-Replace "DD CLI is a Python CLI tool for querying Datadog APIs, built for Kojo troubleshooting." with "ddogctl is a modern CLI for the Datadog API. Like Dogshell, but better." Update all `dd` command references to `ddg`.
+Replace "DD CLI is a Python CLI tool for querying Datadog APIs, built for Kojo troubleshooting." with "ddogctl is a modern CLI for the Datadog API. Like Dogshell, but better." Update all command references to `ddogctl`.
 
 **Step 3: Delete MIGRATION_GUIDE.md**
 
