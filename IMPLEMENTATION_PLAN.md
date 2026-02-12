@@ -661,7 +661,7 @@ Thumbs.db
 ## Next Steps
 
 All phases are complete. Future work:
-1. **Publish to PyPI** as `ddg-cli`
+1. **Publish to PyPI** as `ddogctl`
 2. **Manual verification** with real Datadog API
 3. **Add more commands** as needed (dashboards, synthetics, etc.)
 

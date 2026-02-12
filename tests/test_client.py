@@ -2,8 +2,8 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from ddg.client import DatadogClient, get_datadog_client
-from ddg.config import DatadogConfig
+from ddogctl.client import DatadogClient, get_datadog_client
+from ddogctl.config import DatadogConfig
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def mock_config():
 @pytest.fixture
 def mock_api_client():
     """Create a mock ApiClient."""
-    with patch("ddg.client.ApiClient") as mock_client_class:
+    with patch("ddogctl.client.ApiClient") as mock_client_class:
         mock_instance = Mock()
         mock_client_class.return_value = mock_instance
         yield mock_client_class, mock_instance
@@ -26,7 +26,7 @@ def mock_api_client():
 @pytest.fixture
 def mock_configuration():
     """Create a mock Configuration."""
-    with patch("ddg.client.Configuration") as mock_config_class:
+    with patch("ddogctl.client.Configuration") as mock_config_class:
         mock_instance = Mock()
         mock_instance.api_key = {}
         mock_instance.server_variables = {}
@@ -58,12 +58,12 @@ class TestDatadogClient:
         # Verify api_client attribute is set
         assert client.api_client == mock_client_instance
 
-    @patch("ddg.client.monitors_api.MonitorsApi")
-    @patch("ddg.client.metrics_api.MetricsApi")
-    @patch("ddg.client.events_api.EventsApi")
-    @patch("ddg.client.hosts_api.HostsApi")
-    @patch("ddg.client.tags_api.TagsApi")
-    @patch("ddg.client.logs_api.LogsApi")
+    @patch("ddogctl.client.monitors_api.MonitorsApi")
+    @patch("ddogctl.client.metrics_api.MetricsApi")
+    @patch("ddogctl.client.events_api.EventsApi")
+    @patch("ddogctl.client.hosts_api.HostsApi")
+    @patch("ddogctl.client.tags_api.TagsApi")
+    @patch("ddogctl.client.logs_api.LogsApi")
     def test_api_endpoints_initialized(
         self,
         mock_logs_api,
@@ -172,8 +172,8 @@ class TestContextManager:
 class TestGetDatadogClient:
     """Tests for get_datadog_client helper function."""
 
-    @patch("ddg.config.load_config")
-    @patch("ddg.client.DatadogClient")
+    @patch("ddogctl.config.load_config")
+    @patch("ddogctl.client.DatadogClient")
     def test_get_datadog_client_loads_config(self, mock_client_class, mock_load_config):
         """Test that get_datadog_client loads configuration."""
         mock_config = Mock()
@@ -192,8 +192,8 @@ class TestGetDatadogClient:
         # Verify the client instance is returned
         assert result == mock_client_instance
 
-    @patch("ddg.config.load_config")
-    @patch("ddg.client.DatadogClient")
+    @patch("ddogctl.config.load_config")
+    @patch("ddogctl.client.DatadogClient")
     def test_get_datadog_client_returns_configured_client(
         self, mock_client_class, mock_load_config
     ):
@@ -221,7 +221,7 @@ class TestGetDatadogClient:
 class TestClientAPIAccess:
     """Tests for accessing API endpoints through the client."""
 
-    @patch("ddg.client.monitors_api.MonitorsApi")
+    @patch("ddogctl.client.monitors_api.MonitorsApi")
     def test_monitors_api_accessible(
         self, mock_monitors_api, mock_config, mock_configuration, mock_api_client
     ):
@@ -233,7 +233,7 @@ class TestClientAPIAccess:
 
         assert client.monitors == mock_monitors_instance
 
-    @patch("ddg.client.metrics_api.MetricsApi")
+    @patch("ddogctl.client.metrics_api.MetricsApi")
     def test_metrics_api_accessible(
         self, mock_metrics_api, mock_config, mock_configuration, mock_api_client
     ):
@@ -245,7 +245,7 @@ class TestClientAPIAccess:
 
         assert client.metrics == mock_metrics_instance
 
-    @patch("ddg.client.events_api.EventsApi")
+    @patch("ddogctl.client.events_api.EventsApi")
     def test_events_api_accessible(
         self, mock_events_api, mock_config, mock_configuration, mock_api_client
     ):
@@ -257,7 +257,7 @@ class TestClientAPIAccess:
 
         assert client.events == mock_events_instance
 
-    @patch("ddg.client.hosts_api.HostsApi")
+    @patch("ddogctl.client.hosts_api.HostsApi")
     def test_hosts_api_accessible(
         self, mock_hosts_api, mock_config, mock_configuration, mock_api_client
     ):
@@ -269,7 +269,7 @@ class TestClientAPIAccess:
 
         assert client.hosts == mock_hosts_instance
 
-    @patch("ddg.client.tags_api.TagsApi")
+    @patch("ddogctl.client.tags_api.TagsApi")
     def test_tags_api_accessible(
         self, mock_tags_api, mock_config, mock_configuration, mock_api_client
     ):
@@ -281,7 +281,7 @@ class TestClientAPIAccess:
 
         assert client.tags == mock_tags_instance
 
-    @patch("ddg.client.logs_api.LogsApi")
+    @patch("ddogctl.client.logs_api.LogsApi")
     def test_logs_api_accessible(
         self, mock_logs_api, mock_config, mock_configuration, mock_api_client
     ):

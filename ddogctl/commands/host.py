@@ -4,8 +4,8 @@ import click
 import json
 from rich.console import Console
 from rich.table import Table
-from ddg.client import get_datadog_client
-from ddg.utils.error import handle_api_error
+from ddogctl.client import get_datadog_client
+from ddogctl.utils.error import handle_api_error
 
 console = Console()
 

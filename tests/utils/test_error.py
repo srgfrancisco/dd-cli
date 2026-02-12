@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch
 from datadog_api_client.exceptions import ApiException
-from ddg.utils.error import handle_api_error
+from ddogctl.utils.error import handle_api_error
 
 
 class TestHandleApiError:
@@ -12,13 +12,13 @@ class TestHandleApiError:
     @pytest.fixture
     def mock_console(self):
         """Mock rich Console for capturing output."""
-        with patch("ddg.utils.error.console") as mock:
+        with patch("ddogctl.utils.error.console") as mock:
             yield mock
 
     @pytest.fixture
     def mock_sleep(self):
         """Mock time.sleep to avoid delays in tests."""
-        with patch("ddg.utils.error.time.sleep") as mock:
+        with patch("ddogctl.utils.error.time.sleep") as mock:
             yield mock
 
     def test_successful_call_no_error(self, mock_console):

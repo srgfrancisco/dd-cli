@@ -1,9 +1,9 @@
-# Open-Source ddg-cli Implementation Plan
+# Open-Source ddogctl Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:test-driven-development for Tasks 4-6.
 
-**Goal:** Transform dd-cli from a Kojo-internal tool into an open-source Datadog CLI (`ddg-cli`) with logs, DBM, and investigation commands, publishable to PyPI.
+**Goal:** Transform dd-cli from a Kojo-internal tool into an open-source Datadog CLI (`ddogctl`) with logs, DBM, and investigation commands, publishable to PyPI.
 
 **Architecture:** Click CLI with command groups, each backed by the `datadog-api-client` SDK via a unified `DatadogClient` wrapper. Rich tables for output. Pydantic for config. `@handle_api_error` decorator for retry logic.
 
@@ -63,7 +63,7 @@ Replace `from dd.` with `from ddg.` and `'dd.` / `"dd.` with `'ddg.` / `"ddg.` i
 packages = ["ddg", "ddg.commands", "ddg.formatters", "ddg.models", "ddg.utils"]
 
 [project]
-name = "ddg-cli"
+name = "ddogctl"
 description = "A modern CLI for the Datadog API. Like Dogshell, but better."
 
 [project.scripts]
@@ -93,7 +93,7 @@ git add -A
 git commit -m "refactor: rename dd to ddg for open-source release
 
 Rename package from dd to ddg to avoid Unix dd conflict.
-CLI entry point: ddg. PyPI name: ddg-cli."
+CLI entry point: ddg. PyPI name: ddogctl."
 ```
 
 ---
@@ -121,7 +121,7 @@ Also update the description body to be generic (remove Kojo-specific text).
 
 **Step 2: Update CLAUDE.md**
 
-Replace "DD CLI is a Python CLI tool for querying Datadog APIs, built for Kojo troubleshooting." with "ddg-cli is a modern CLI for the Datadog API. Like Dogshell, but better." Update all `dd` command references to `ddg`.
+Replace "DD CLI is a Python CLI tool for querying Datadog APIs, built for Kojo troubleshooting." with "ddogctl is a modern CLI for the Datadog API. Like Dogshell, but better." Update all `dd` command references to `ddg`.
 
 **Step 3: Delete MIGRATION_GUIDE.md**
 
@@ -166,7 +166,7 @@ Create `LICENSE` with MIT license, year 2026, author name from git config.
 **Step 2: Create CONTRIBUTING.md**
 
 ```markdown
-# Contributing to ddg-cli
+# Contributing to ddogctl
 
 ## Setup
 
@@ -243,11 +243,11 @@ jobs:
 **Step 4: Rewrite README.md**
 
 Full rewrite with:
-- Title: "ddg-cli"
+- Title: "ddogctl"
 - Tagline: "A modern CLI for the Datadog API. Like Dogshell, but better."
 - Badges: CI, PyPI version, Python versions, License
 - Feature comparison table (ddg vs Dogshell)
-- Install: `pip install ddg-cli` / `pipx install ddg-cli`
+- Install: `pip install ddogctl` / `pipx install ddogctl`
 - Quick start with config and example commands
 - Full command reference with all subcommands
 - Contributing link
@@ -272,8 +272,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sergiofrancovel/ddg-cli"
-Issues = "https://github.com/sergiofrancovel/ddg-cli/issues"
+Homepage = "https://github.com/srgfrancisco/ddogctl"
+Issues = "https://github.com/srgfrancisco/ddogctl/issues"
 ```
 
 **Step 6: Run tests**

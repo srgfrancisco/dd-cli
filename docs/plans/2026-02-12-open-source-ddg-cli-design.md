@@ -1,18 +1,18 @@
-# Design: Open-Source ddg-cli
+# Design: Open-Source ddogctl
 
 **Date**: 2026-02-12
 **Status**: Approved
 
 ## Summary
 
-Transform dd-cli from a Kojo-internal Datadog troubleshooting tool into an open-source CLI positioned as a modern Dogshell replacement. Rename to `ddg-cli`, implement the full roadmap (logs, DBM, investigation workflows), and publish to PyPI.
+Transform dd-cli from a Kojo-internal Datadog troubleshooting tool into an open-source CLI positioned as a modern Dogshell replacement. Rename to `ddogctl`, implement the full roadmap (logs, DBM, investigation workflows), and publish to PyPI.
 
 ## Decisions
 
 | Decision | Choice |
 |----------|--------|
 | CLI command name | `ddg` |
-| PyPI package name | `ddg-cli` |
+| PyPI package name | `ddogctl` |
 | Launch scope | Full roadmap before open-sourcing |
 | Positioning | Modern Dogshell replacement |
 | License | MIT |
@@ -24,7 +24,7 @@ Rename `dd/` directory to `ddg/`. All internal imports change from `from dd.X` t
 **pyproject.toml**:
 ```toml
 [project]
-name = "ddg-cli"
+name = "ddogctl"
 description = "A modern CLI for the Datadog API. Like Dogshell, but better."
 
 [project.scripts]
@@ -50,7 +50,7 @@ Remove all Kojo references. Use generic service names in examples (`my-api`, `we
 **README.md rewrite**:
 - One-liner: "A modern CLI for the Datadog API. Like Dogshell, but better."
 - Feature comparison table (ddg vs Dogshell)
-- Install: `pip install ddg-cli` / `pipx install ddg-cli`
+- Install: `pip install ddogctl` / `pipx install ddogctl`
 - Configuration: `DD_API_KEY`, `DD_APP_KEY`, `DD_SITE`
 - Command overview with examples
 
@@ -89,7 +89,7 @@ Multi-API orchestration — 10 minutes of DD UI clicking in one command.
 
 ## Distribution
 
-- Primary: `pip install ddg-cli` / `pipx install ddg-cli` / `uv pip install ddg-cli`
+- Primary: `pip install ddogctl` / `pipx install ddogctl` / `uv pip install ddogctl`
 - Build system: setuptools (already in place)
 - CI publishes to PyPI on tagged releases via `pypa/gh-action-pypi-publish`
 
