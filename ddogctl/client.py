@@ -56,8 +56,20 @@ class DatadogClient:
 
 
 def get_datadog_client() -> DatadogClient:
-    """Get configured Datadog client."""
+    """Get configured Datadog client.
+
+    Reads the --profile option from Click context if available.
+    """
+    import click
     from ddogctl.config import load_config
 
-    config = load_config()
+    profile = None
+    try:
+        ctx = click.get_current_context(silent=True)
+        if ctx and ctx.obj:
+            profile = ctx.obj.get("profile")
+    except RuntimeError:
+        pass
+
+    config = load_config(profile=profile)
     return DatadogClient(config)

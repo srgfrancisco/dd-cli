@@ -37,7 +37,14 @@ class AliasGroup(click.Group):
 
 @click.group(cls=AliasGroup)
 @click.version_option(version="1.0.0")
-def main():
+@click.option(
+    "--profile",
+    default=None,
+    envvar="DDOGCTL_PROFILE",
+    help="Configuration profile to use (from ~/.ddogctl/config.json).",
+)
+@click.pass_context
+def main(ctx, profile):
     """A modern CLI for the Datadog API. Like Dogshell, but better.
 
     Query monitors, metrics, events, hosts, APM traces, logs, and more
@@ -53,7 +60,8 @@ def main():
         ddogctl apm traces my-service --from 1h
         ddogctl logs search "status:error" --service my-api
     """
-    pass
+    ctx.ensure_object(dict)
+    ctx.obj["profile"] = profile
 
 
 # Import and register all command groups
@@ -73,6 +81,7 @@ from ddogctl.commands.slo import slo
 from ddogctl.commands.dashboard import dashboard
 from ddogctl.commands.completion import completion
 from ddogctl.commands.apply import apply_cmd, diff_cmd
+from ddogctl.commands.config import config
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -90,6 +99,7 @@ main.add_command(dashboard)
 main.add_command(completion)
 main.add_command(apply_cmd)
 main.add_command(diff_cmd)
+main.add_command(config)
 
 
 if __name__ == "__main__":
