@@ -84,6 +84,7 @@ from ddogctl.commands.apply import apply_cmd, diff_cmd
 from ddogctl.commands.config import config
 from ddogctl.commands.incident import incident
 from ddogctl.commands.user import user
+from ddogctl.commands.usage import usage
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -104,6 +105,7 @@ main.add_command(diff_cmd)
 main.add_command(config)
 main.add_command(incident)
 main.add_command(user)
+main.add_command(usage)
 
 
 if __name__ == "__main__":
