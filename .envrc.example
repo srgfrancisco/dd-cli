@@ -5,6 +5,3 @@
 export DD_API_KEY="your-datadog-api-key-here"
 export DD_APP_KEY="your-datadog-app-key-here"
 export DD_SITE="datadoghq.com"
-
-# Optional: Sentry integration (if needed)
-# export SENTRY_AUTH_TOKEN="your-sentry-token-here"
