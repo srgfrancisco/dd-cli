@@ -14,6 +14,7 @@ from datadog_api_client.v1.api import (
     dashboards_api,
     usage_metering_api,
     synthetics_api,
+    notebooks_api,
 )
 from datadog_api_client.v2.api import (
     logs_api,
@@ -55,6 +56,7 @@ class DatadogClient:
         self.dashboards = dashboards_api.DashboardsApi(self.api_client)
         self.usage = usage_metering_api.UsageMeteringApi(self.api_client)
         self.synthetics = synthetics_api.SyntheticsApi(self.api_client)
+        self.notebooks = notebooks_api.NotebooksApi(self.api_client)
 
         # V2 APIs
         self.logs = logs_api.LogsApi(self.api_client)

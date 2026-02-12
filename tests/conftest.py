@@ -39,6 +39,7 @@ def mock_client():
     client.rum = Mock()
     client.ci_pipelines = Mock()
     client.ci_tests = Mock()
+    client.notebooks = Mock()
     return client
 
 
