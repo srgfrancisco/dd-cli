@@ -28,6 +28,7 @@ def mock_client():
     client.logs = Mock()
     client.dbm = Mock()
     client.service_definitions = Mock()
+    client.service_checks = Mock()
     return client
 
 
