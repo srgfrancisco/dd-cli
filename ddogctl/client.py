@@ -13,7 +13,13 @@ from datadog_api_client.v1.api import (
     service_level_objectives_api,
     dashboards_api,
 )
-from datadog_api_client.v2.api import logs_api, spans_api, service_definition_api, incidents_api
+from datadog_api_client.v2.api import (
+    logs_api,
+    spans_api,
+    service_definition_api,
+    incidents_api,
+    users_api,
+)
 from ddogctl.config import DatadogConfig
 
 
@@ -48,6 +54,7 @@ class DatadogClient:
         self.spans = spans_api.SpansApi(self.api_client)
         self.service_definitions = service_definition_api.ServiceDefinitionApi(self.api_client)
         self.incidents = incidents_api.IncidentsApi(self.api_client)
+        self.users = users_api.UsersApi(self.api_client)
 
     def __enter__(self):
         return self

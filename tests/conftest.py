@@ -33,6 +33,7 @@ def mock_client():
     client.slos = Mock()
     client.dashboards = Mock()
     client.incidents = Mock()
+    client.users = Mock()
     return client
 
 

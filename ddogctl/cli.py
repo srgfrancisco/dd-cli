@@ -83,6 +83,7 @@ from ddogctl.commands.completion import completion
 from ddogctl.commands.apply import apply_cmd, diff_cmd
 from ddogctl.commands.config import config
 from ddogctl.commands.incident import incident
+from ddogctl.commands.user import user
 
 main.add_command(monitor)
 main.add_command(metric)
@@ -102,6 +103,7 @@ main.add_command(apply_cmd)
 main.add_command(diff_cmd)
 main.add_command(config)
 main.add_command(incident)
+main.add_command(user)
 
 
 if __name__ == "__main__":
