@@ -652,3 +652,105 @@ def test_logs_tail_follow_clean_exit(mock_client, runner):
             assert result.exit_code == 0
             # Should show a clean exit message
             assert "Follow stopped" in result.output
+
+
+# Tests for logs with missing attributes (AWS Firelens, etc.)
+
+
+def test_logs_search_missing_message_attribute(mock_client, runner):
+    """Test search handles logs without standard message attribute gracefully."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+
+    # Create a mock log without message, service, or status attributes
+    # (simulates AWS Firelens or other log sources with different structures)
+    class MockFirelensLog:
+        def __init__(self):
+            self.id = "log-firelens-123"
+            self.type = "log"
+            # Firelens logs might have different attribute names
+            # Use spec_set to prevent Mock from creating missing attributes
+            self.attributes = Mock(
+                spec_set=["log", "timestamp", "tags", "attributes"],
+                log="Firelens log content",  # 'log' instead of 'message'
+                timestamp=now,
+                tags=["source:firelens"],
+                attributes={"container_name": "httpd"},
+            )
+
+    mock_logs = [MockFirelensLog()]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "json"])
+
+        # Should not crash, should handle missing attributes gracefully
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert len(output) == 1
+        # Should have fallback values for missing attributes
+        assert "message" in output[0]
+        assert "service" in output[0]
+        assert "status" in output[0]
+
+
+def test_logs_search_partial_attributes(mock_client, runner):
+    """Test search handles logs with only some standard attributes."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+
+    # Create a log with only message and timestamp
+    class MockPartialLog:
+        def __init__(self):
+            self.id = "log-partial-456"
+            self.type = "log"
+            self.attributes = Mock(
+                spec_set=["message", "timestamp", "tags"],
+                message="Partial log entry",
+                timestamp=now,
+                tags=[],
+            )
+
+    mock_logs = [MockPartialLog()]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "table"])
+
+        # Should not crash
+        assert result.exit_code == 0
+        assert "Partial log entry" in result.output
+
+
+def test_logs_tail_missing_attributes(mock_client, runner):
+    """Test tail handles logs with missing attributes."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+
+    class MockMinimalLog:
+        def __init__(self):
+            self.id = "log-minimal-789"
+            self.type = "log"
+            self.attributes = Mock(
+                spec_set=["timestamp", "tags", "attributes"],
+                timestamp=now,
+                tags=[],
+                attributes={},  # Empty attributes dict
+            )
+
+    mock_logs = [MockMinimalLog()]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["tail", "*", "--format", "json"])
+
+        # Should not crash
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert len(output) == 1

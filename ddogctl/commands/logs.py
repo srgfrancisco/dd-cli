@@ -26,10 +26,10 @@ def _format_log_entry(log):
     """Extract fields from a log entry."""
     attrs = log.attributes
     return {
-        "message": attrs.message,
-        "service": attrs.service,
-        "status": attrs.status,
-        "timestamp": str(attrs.timestamp),
+        "message": getattr(attrs, "message", getattr(attrs, "log", "N/A")),
+        "service": getattr(attrs, "service", "N/A"),
+        "status": getattr(attrs, "status", "unknown"),
+        "timestamp": str(getattr(attrs, "timestamp", "")),
     }
 
 
@@ -43,19 +43,23 @@ def _render_logs_table(logs_data, title="Logs"):
 
     for log in logs_data:
         attrs = log.attributes
-        time_str = str(attrs.timestamp)
-        if hasattr(attrs.timestamp, "strftime"):
-            time_str = attrs.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = getattr(attrs, "timestamp", None)
+        time_str = str(timestamp) if timestamp else "N/A"
+        if timestamp and hasattr(timestamp, "strftime"):
+            time_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
-        status = attrs.status
+        status = getattr(attrs, "status", "unknown")
         color = STATUS_COLORS.get(status, "white")
         status_styled = f"[{color}]{status}[/{color}]"
+
+        message = getattr(attrs, "message", getattr(attrs, "log", "N/A"))
+        service = getattr(attrs, "service", "N/A")
 
         table.add_row(
             time_str,
             status_styled,
-            attrs.service,
-            attrs.message,
+            service,
+            message,
         )
 
     return table
@@ -190,15 +194,18 @@ def tail_logs(query, lines, service, follow, format):
                     else:
                         for log in new_logs:
                             attrs = log.attributes
-                            time_str = str(attrs.timestamp)
-                            if hasattr(attrs.timestamp, "strftime"):
-                                time_str = attrs.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                            timestamp = getattr(attrs, "timestamp", None)
+                            time_str = str(timestamp) if timestamp else "N/A"
+                            if timestamp and hasattr(timestamp, "strftime"):
+                                time_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
-                            status = str(attrs.status)
+                            status = str(getattr(attrs, "status", "unknown"))
                             color = STATUS_COLORS.get(status, "white")
                             # Escape Rich markup in untrusted content
-                            safe_service = str(attrs.service).replace("[", "\\[")
-                            safe_message = str(attrs.message).replace("[", "\\[")
+                            service = getattr(attrs, "service", "N/A")
+                            message = getattr(attrs, "message", getattr(attrs, "log", "N/A"))
+                            safe_service = str(service).replace("[", "\\[")
+                            safe_message = str(message).replace("[", "\\[")
                             console.print(
                                 f"[dim]{time_str}[/dim] "
                                 f"[{color}]{status}[/{color}] "
