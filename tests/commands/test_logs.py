@@ -74,6 +74,85 @@ def test_logs_search_json_format(mock_client, runner):
         assert "timestamp" in output[0]
 
 
+def test_logs_search_json_includes_nested_attributes(mock_client, runner):
+    """Test search JSON output includes nested attributes from log payload."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+    nested_attrs = {
+        "jobName": "invoice-processing",
+        "queueName": "INVOICES_CREATE_OR_UPDATE_FROM_FILE",
+        "event": "failed",
+        "failedReason": "Connection timeout",
+        "stacktrace": ["Error: Connection timeout", "  at Worker.process"],
+        "attemptsMade": 3,
+        "orgId": "org-123",
+    }
+    mock_logs = [
+        create_mock_log(
+            "BullMQ worker event", "worker-prod", "error", now, attributes=nested_attrs
+        ),
+    ]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "json"])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert len(output) == 1
+        log_entry = output[0]
+        assert log_entry["message"] == "BullMQ worker event"
+        assert log_entry["attributes"]["jobName"] == "invoice-processing"
+        assert log_entry["attributes"]["queueName"] == "INVOICES_CREATE_OR_UPDATE_FROM_FILE"
+        assert log_entry["attributes"]["event"] == "failed"
+        assert log_entry["attributes"]["failedReason"] == "Connection timeout"
+        assert log_entry["attributes"]["attemptsMade"] == 3
+
+
+def test_logs_search_json_empty_attributes(mock_client, runner):
+    """Test search JSON output handles logs with no nested attributes."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+    mock_logs = [
+        create_mock_log("Simple log", "web-api", "info", now),
+    ]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["search", "*", "--format", "json"])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert output[0]["attributes"] == {}
+
+
+def test_logs_trace_json_includes_nested_attributes(mock_client, runner):
+    """Test trace JSON output includes nested attributes."""
+    from ddogctl.commands.logs import logs
+
+    now = datetime.now()
+    nested_attrs = {"http.method": "GET", "http.status_code": 500, "trace_id": "abc123"}
+    mock_logs = [
+        create_mock_log(
+            "Request failed", "web-api", "error", now, attributes=nested_attrs, trace_id="abc123"
+        ),
+    ]
+    mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
+    mock_client.logs.list_logs.return_value = mock_response
+
+    with patch("ddogctl.commands.logs.get_datadog_client", return_value=mock_client):
+        result = runner.invoke(logs, ["trace", "abc123", "--format", "json"])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert output[0]["attributes"]["http.method"] == "GET"
+        assert output[0]["attributes"]["http.status_code"] == 500
+
+
 def test_logs_search_with_time_range(mock_client, runner):
     """Test search with --from 24h is accepted."""
     from ddogctl.commands.logs import logs

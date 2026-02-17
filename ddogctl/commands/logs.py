@@ -25,11 +25,17 @@ STATUS_COLORS = {
 def _format_log_entry(log):
     """Extract fields from a log entry."""
     attrs = log.attributes
+    nested = getattr(attrs, "attributes", None) or {}
+    if hasattr(nested, "to_dict"):
+        nested = nested.to_dict()
+    elif not isinstance(nested, dict):
+        nested = {}
     return {
         "message": getattr(attrs, "message", getattr(attrs, "log", "N/A")),
         "service": getattr(attrs, "service", "N/A"),
         "status": getattr(attrs, "status", "unknown"),
         "timestamp": str(getattr(attrs, "timestamp", "")),
+        "attributes": nested,
     }
 
 
