@@ -80,17 +80,17 @@ def test_logs_search_json_includes_nested_attributes(mock_client, runner):
 
     now = datetime.now()
     nested_attrs = {
-        "jobName": "invoice-processing",
-        "queueName": "INVOICES_CREATE_OR_UPDATE_FROM_FILE",
+        "jobName": "data-sync",
+        "queueName": "EVENTS_PROCESS_BATCH",
         "event": "failed",
         "failedReason": "Connection timeout",
         "stacktrace": ["Error: Connection timeout", "  at Worker.process"],
         "attemptsMade": 3,
-        "orgId": "org-123",
+        "userId": "usr-123",
     }
     mock_logs = [
         create_mock_log(
-            "BullMQ worker event", "worker-prod", "error", now, attributes=nested_attrs
+            "Background job event", "task-worker", "error", now, attributes=nested_attrs
         ),
     ]
     mock_response = Mock(data=mock_logs, meta=Mock(page=Mock(after=None)))
@@ -103,9 +103,9 @@ def test_logs_search_json_includes_nested_attributes(mock_client, runner):
         output = json.loads(result.output)
         assert len(output) == 1
         log_entry = output[0]
-        assert log_entry["message"] == "BullMQ worker event"
-        assert log_entry["attributes"]["jobName"] == "invoice-processing"
-        assert log_entry["attributes"]["queueName"] == "INVOICES_CREATE_OR_UPDATE_FROM_FILE"
+        assert log_entry["message"] == "Background job event"
+        assert log_entry["attributes"]["jobName"] == "data-sync"
+        assert log_entry["attributes"]["queueName"] == "EVENTS_PROCESS_BATCH"
         assert log_entry["attributes"]["event"] == "failed"
         assert log_entry["attributes"]["failedReason"] == "Connection timeout"
         assert log_entry["attributes"]["attemptsMade"] == 3
